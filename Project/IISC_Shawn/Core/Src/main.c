@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "../../inc/serial_port.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
