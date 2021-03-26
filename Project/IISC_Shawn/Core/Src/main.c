@@ -50,6 +50,12 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 /* USER CODE BEGIN PV */
 
+//Declare ring buffer struct
+RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
+
+//Declare blink complete flag
+bool blink_complete = true;				//Set when 10sec time of blink is done
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -104,16 +110,14 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  //Declare Serial port buffer
-  uint8_t serial_buffer[SERIAL_BUFFER_SIZE] = {0};
+  //Init serial_buffer variable
+  serial_buffer.num_pending = 0;
+  serial_buffer.write_index = 0;
+  serial_buffer.read_index = 0;//SERIAL_BUFFER_SIZE;
 
-  //init serial port
-  serial_port_init(serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
+  //Init serial port
+  serial_port_init(&serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
 
-  /**FOR TESTING ONLY**/
-  enable_timer(&htim14);
-  enable_pwm(&htim16, TIM_CHANNEL_1);
-/****/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -123,6 +127,23 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+	//Wait for data to be available on buffer
+	while(serial_buffer.num_pending == 0);
+
+	//Check if timer14 is disabled by checking the CEN but of CR1 register
+	if((*(&htim14.Instance->CR1)&(0x01)) == false){
+
+		//Begin 10 sec LED blink operation with updated duty cycle
+		set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
+
+		//check for 4 and 7
+
+		//Enable pwm and timer
+		enable_timer(&htim14);
+		enable_pwm(&htim16, TIM_CHANNEL_1);
+	}
+
 
   }
   /* USER CODE END 3 */
@@ -300,9 +321,7 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   huart1.Init.OverSampling = UART_OVERSAMPLING_16;
   huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_AUTOBAUDRATE_INIT;
-  huart1.AdvancedInit.AutoBaudRateEnable = UART_ADVFEATURE_AUTOBAUDRATE_ENABLE;
-  huart1.AdvancedInit.AutoBaudRateMode = UART_ADVFEATURE_AUTOBAUDRATE_ONSTARTBIT;
+  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     Error_Handler();
@@ -421,6 +440,43 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
+
+	if(htm == &htim14){
+
+		//Decrement number of pending buffer slots
+		serial_buffer.num_pending--;
+		//Increment read index on buffer
+		serial_buffer.read_index++;
+
+		//Reset read_index if it exceeds buffer size
+		if(serial_buffer.read_index >= SERIAL_BUFFER_SIZE){
+			serial_buffer.read_index = 0;
+		}
+
+		//Check if another data instruction is waiting in qeue
+		if(serial_buffer.num_pending == 0){
+
+			//disable both timer and pwm
+			disable_timer(&htim14);
+			disable_pwm(&htim16, TIM_CHANNEL_1);
+
+		}else{
+
+			//Begin new 10 sec LED blink operation with updated duty cycle
+			set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
+
+			//Check 4 and 7
+
+			//transmit result
+		}
+
+		return;
+
+	}
+
+}
 
 /* USER CODE END 4 */
 

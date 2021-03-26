@@ -3,8 +3,8 @@
 //Declare UART buffer
 uint8_t receive_buffer[UART_BUFFER_SIZE] = {0};
 
-//Declare serial port ring buffer pointer
-uint8_t* p_serial_buffer;
+//Declare serial port ring buffer struct pointer
+RING_BUFFER* p_serial_buffer;
 
 //Declare dma handle pointer
 DMA_HandleTypeDef* p_dma_handle;
@@ -12,7 +12,7 @@ DMA_HandleTypeDef* p_dma_handle;
 //Declare uart handle pointer
 UART_HandleTypeDef* p_uart_handle;
 
-void serial_port_init(uint8_t* _serial_buffer, UART_HandleTypeDef* _uart_handle,
+void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_handle,
 		DMA_HandleTypeDef* _dma_handle){
 
 	//Assign pointer to DMA handle to global pointer
@@ -68,7 +68,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 		//HAL_DMA_Start_IT(p_dma_handle, (uint32_t)CRC RESULT DATA,
 		//	(uint32_t)p_serial_buffer, 1);
 		HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
-				(uint32_t)p_serial_buffer, SERIAL_BUFFER_SIZE);
+				(uint32_t)(p_serial_buffer->buffer + p_serial_buffer->write_index), 1);
 
 		}
 

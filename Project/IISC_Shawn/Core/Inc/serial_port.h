@@ -20,7 +20,7 @@
  * 9, Baud rate cannot be changed on the fly
  */
 
-void serial_port_init(uint8_t*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
+void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
 
 bool check_crc(void);
 
