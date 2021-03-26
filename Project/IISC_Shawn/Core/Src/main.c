@@ -24,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "serial_port.h"
 #include "timer.h"
+#include "multiples.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,6 +55,8 @@ DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 //Declare ring buffer struct
 RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
 
+//Declare char array to store response to pc
+char msg[10];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,12 +142,15 @@ int main(void)
 		//Begin 10 sec LED blink operation with updated duty cycle
 		set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
 
-		//check for 4 and 7
-
 		//Enable pwm and timers
 		enable_timer(&htim14);			//triggers every 10sec (for led operation)
 		enable_timer(&htim17);			//triggers every 2 sec (for blinking)
 		enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
+
+		//check for 4 and 7
+		check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
+
+		//Transmit msg
 	}
 
 
@@ -541,7 +547,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 
 			//disable both timers and pwm
 			disable_timer(&htim14);
-			disable_timer(&htim17);
 			disable_pwm(&htim16, TIM_CHANNEL_1);
 
 		}else{
@@ -553,6 +558,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 			enable_timer(&htim17);
 
 			//Check 4 and 7
+			check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 			//transmit result
 		}
