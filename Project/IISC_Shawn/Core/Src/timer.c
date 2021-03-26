@@ -8,6 +8,7 @@ void enable_timer(TIM_HandleTypeDef *_htm){
 	if(HAL_TIM_Base_Start_IT(_htm) != HAL_OK){
 	}
 
+
 	return;
 }
 
@@ -16,7 +17,6 @@ void disable_timer(TIM_HandleTypeDef *_htm){
 	/*HAL Macro to disable module*/
 	if(HAL_TIM_Base_Stop_IT(_htm) != HAL_OK){
 	}
-	//__HAL_TIM_DISABLE(_htm);
 
 	return;
 }

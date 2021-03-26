@@ -43,6 +43,7 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim14;
 TIM_HandleTypeDef htim16;
+TIM_HandleTypeDef htim17;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
@@ -52,9 +53,6 @@ DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 
 //Declare ring buffer struct
 RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
-
-//Declare timer variable to track number of tim14 capture compares
-uint8_t timer_capture_occurred = 0;				//Increments every timer14 capture compare
 
 /* USER CODE END PV */
 
@@ -66,6 +64,7 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM14_Init(void);
 static void MX_TIM16_Init(void);
+static void MX_TIM17_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -108,6 +107,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM14_Init();
   MX_TIM16_Init();
+  MX_TIM17_Init();
   /* USER CODE BEGIN 2 */
 
   //Init serial_buffer variable
@@ -139,8 +139,9 @@ int main(void)
 
 		//check for 4 and 7
 
-		//Enable pwm and timer for 2 sec capture
+		//Enable pwm and timers
 		enable_timer(&htim14);
+		enable_timer(&htim17);
 		enable_pwm(&htim16, TIM_CHANNEL_1);
 	}
 
@@ -210,7 +211,7 @@ static void MX_TIM14_Init(void)
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 7999;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 1999;
+  htim14.Init.Period = 9999;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -294,6 +295,67 @@ static void MX_TIM16_Init(void)
 
   /* USER CODE END TIM16_Init 2 */
   HAL_TIM_MspPostInit(&htim16);
+
+}
+
+/**
+  * @brief TIM17 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM17_Init(void)
+{
+
+  /* USER CODE BEGIN TIM17_Init 0 */
+
+  /* USER CODE END TIM17_Init 0 */
+
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM17_Init 1 */
+
+  /* USER CODE END TIM17_Init 1 */
+  htim17.Instance = TIM17;
+  htim17.Init.Prescaler = 7999;
+  htim17.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim17.Init.Period = 1999;
+  htim17.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim17.Init.RepetitionCounter = 0;
+  htim17.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_OC_Init(&htim17) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_TIMING;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_OC_ConfigChannel(&htim17, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim17, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM17_Init 2 */
+
+  /* USER CODE END TIM17_Init 2 */
 
 }
 
@@ -443,32 +505,26 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 
-	if(htm == &htim14){
+	if(htm == &htim17){
 
-		//Check if no. of timer captures is = 5. 5 implies 10 sec have passed
-		if(timer_capture_occurred < 5){
+		//Checks if pwm is disabled
+		if((*(&htim16.Instance->CR1)&(0x01)) == false){
+			//Enabled pwm
+			enable_pwm(&htim16, TIM_CHANNEL_1);
 
-			//Checks if pwm is disabled
-			if((*(&htim16.Instance->CR1)&(0x01)) == false){
-				//Enabled pwm
-				enable_pwm(&htim16, TIM_CHANNEL_1);
-
-			}else{
-				//Disabled pwm
-				disable_pwm(&htim16, TIM_CHANNEL_1);
-			}
-
-			//Incrememnt timer capture counter
-			timer_capture_occurred++;
-
-			return;
+		}else{
+			//Disabled pwm
+			disable_pwm(&htim16, TIM_CHANNEL_1);
 		}
 
-		//Reset variable
-		timer_capture_occurred = 0;
+	} else if(htm == &htim14){
+
+		//disable timer17
+		disable_timer(&htim17);
 
 		//Decrement number of pending buffer slots
 		serial_buffer.num_pending--;
+
 		//Increment read index on buffer
 		serial_buffer.read_index++;
 
@@ -477,17 +533,21 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 			serial_buffer.read_index = 0;
 		}
 
-		//Check if another data instruction is waiting in qeue
+		//Check if another data instruction is waiting in queue
 		if(serial_buffer.num_pending == 0){
 
 			//disable both timer and pwm
 			disable_timer(&htim14);
+			disable_timer(&htim17);
 			disable_pwm(&htim16, TIM_CHANNEL_1);
 
 		}else{
 
 			//Begin new 10 sec LED blink operation with updated duty cycle
 			set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
+
+			//Enable timer for led blink
+			enable_timer(&htim17);
 
 			//Check 4 and 7
 
