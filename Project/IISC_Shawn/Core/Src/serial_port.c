@@ -63,10 +63,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 
 		}else{
 
-		//Trigger DMA transfer
-		HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer, (uint32_t)p_serial_buffer, 1);
+		//Trigger DMA transfer. To be replaced once crc implemented
+
+		//HAL_DMA_Start_IT(p_dma_handle, (uint32_t)CRC RESULT DATA,
+		//	(uint32_t)p_serial_buffer, 1);
+		HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
+				(uint32_t)p_serial_buffer, SERIAL_BUFFER_SIZE);
 
 		}
+
 
 		return;
 	}
