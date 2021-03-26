@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "serial_port.h"
+#include "timer.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,7 +106,6 @@ int main(void)
 
   //Declare Serial port buffer
   uint8_t serial_buffer[SERIAL_BUFFER_SIZE] = {0};
-  //Enable Timer14 Peripheral
 
   //init serial port
   serial_port_init(serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);

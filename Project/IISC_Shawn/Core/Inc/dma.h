@@ -1,7 +1,7 @@
 #ifndef DMA_H
 #define DMA_H
 
-#include "definitons.h"
+#include "definitions.h"
 
 /**
  * Description: This driver implements DMA functions to be used by the serial port

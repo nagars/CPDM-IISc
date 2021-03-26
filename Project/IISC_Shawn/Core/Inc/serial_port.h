@@ -1,7 +1,7 @@
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 
-#include "definitons.h"
+#include <definitions.h>
 #include "dma.h"
 
 /**
