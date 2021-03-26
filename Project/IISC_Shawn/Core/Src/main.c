@@ -113,7 +113,7 @@ int main(void)
   //Init serial_buffer variable
   serial_buffer.num_pending = 0;
   serial_buffer.write_index = 0;
-  serial_buffer.read_index = 0;//SERIAL_BUFFER_SIZE;
+  serial_buffer.read_index = 0;
 
   //Init serial port
   serial_port_init(&serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
@@ -131,7 +131,9 @@ int main(void)
 	//Wait for data to be available on buffer
 	while(serial_buffer.num_pending == 0);
 
-	//Check if timer14 is disabled by checking the CEN but of CR1 register
+	//Check if timer14 is disabled by checking the CEN but of CR1 register.
+	//This confirms if the timers are implementing instructions from the pc.
+	//If disabled, it means the led is not blinking and all timers are disabled.
 	if((*(&htim14.Instance->CR1)&(0x01)) == false){
 
 		//Begin 10 sec LED blink operation with updated duty cycle
@@ -140,9 +142,9 @@ int main(void)
 		//check for 4 and 7
 
 		//Enable pwm and timers
-		enable_timer(&htim14);
-		enable_timer(&htim17);
-		enable_pwm(&htim16, TIM_CHANNEL_1);
+		enable_timer(&htim14);			//triggers every 10sec (for led operation)
+		enable_timer(&htim17);			//triggers every 2 sec (for blinking)
+		enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
 	}
 
 
@@ -505,6 +507,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 
+	//Checks which timer has triggered callback
 	if(htm == &htim17){
 
 		//Checks if pwm is disabled
@@ -517,7 +520,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 			disable_pwm(&htim16, TIM_CHANNEL_1);
 		}
 
-	} else if(htm == &htim14){
+	} else if(htm == &htim14){			//10 sec completed
 
 		//disable timer17
 		disable_timer(&htim17);
@@ -536,7 +539,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 		//Check if another data instruction is waiting in queue
 		if(serial_buffer.num_pending == 0){
 
-			//disable both timer and pwm
+			//disable both timers and pwm
 			disable_timer(&htim14);
 			disable_timer(&htim17);
 			disable_pwm(&htim16, TIM_CHANNEL_1);

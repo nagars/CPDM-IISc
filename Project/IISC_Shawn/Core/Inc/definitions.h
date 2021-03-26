@@ -4,6 +4,11 @@
 #include "stm32f0xx_hal.h"
 #include <stdbool.h>
 
+/**
+ * @file definitions.h
+ * @brief Holds various definitons common to entire project
+ */
+
 /*Status*/
 #define SUCCESS 1
 #define FAILURE 0
@@ -35,12 +40,8 @@ extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 
 /*externs of variable/pointers*/
-
-//serial port buffer struct pointer
 extern RING_BUFFER* p_serial_buffer;
-//dma handle pointer
 extern DMA_HandleTypeDef* p_dma_handle;
-//uart handle pointer
 extern UART_HandleTypeDef* p_uart_handle;
 
 /*Serial Acknowledge code*/
