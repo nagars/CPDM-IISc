@@ -1,5 +1,6 @@
 #include "timer.h"
 
+uint8_t duty = 0;
 
 void enable_timer(TIM_HandleTypeDef *_htm){
 
@@ -57,4 +58,20 @@ void set_pwm_duty_cycle(TIM_HandleTypeDef *_htm, uint8_t duty_cycle){
 
 }
 
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
+
+	if(htm == &htim14){
+
+		/**For testing only**/
+		set_pwm_duty_cycle(&htim16, duty + 10);
+		duty+=10;
+		/***/
+
+		//Check if another data instruction is waiting in qeue
+
+		//If not, disable both timer and pwm
+
+	}
+
+}
 

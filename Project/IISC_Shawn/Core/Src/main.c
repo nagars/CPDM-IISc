@@ -110,6 +110,10 @@ int main(void)
   //init serial port
   serial_port_init(serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
 
+  /**FOR TESTING ONLY**/
+  enable_timer(&htim14);
+  enable_pwm(&htim16, TIM_CHANNEL_1);
+/****/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -183,10 +187,10 @@ static void MX_TIM14_Init(void)
 
   /* USER CODE END TIM14_Init 1 */
   htim14.Instance = TIM14;
-  htim14.Init.Prescaler = 2000;
+  htim14.Init.Prescaler = 7999;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 10000;
-  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
+  htim14.Init.Period = 9999;
+  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
   {
@@ -204,7 +208,6 @@ static void MX_TIM14_Init(void)
   {
     Error_Handler();
   }
-  __HAL_TIM_ENABLE_OCxPRELOAD(&htim14, TIM_CHANNEL_1);
   /* USER CODE BEGIN TIM14_Init 2 */
 
   /* USER CODE END TIM14_Init 2 */
@@ -232,7 +235,7 @@ static void MX_TIM16_Init(void)
   htim16.Instance = TIM16;
   htim16.Init.Prescaler = 0;
   htim16.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim16.Init.Period = 2000;
+  htim16.Init.Period = 1999;
   htim16.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim16.Init.RepetitionCounter = 0;
   htim16.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
