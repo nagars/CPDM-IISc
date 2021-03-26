@@ -53,8 +53,8 @@ DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 //Declare ring buffer struct
 RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
 
-//Declare blink complete flag
-bool blink_complete = true;				//Set when 10sec time of blink is done
+//Declare timer variable to track number of tim14 capture compares
+uint8_t timer_capture_occurred = 0;				//Increments every timer14 capture compare
 
 /* USER CODE END PV */
 
@@ -139,7 +139,7 @@ int main(void)
 
 		//check for 4 and 7
 
-		//Enable pwm and timer
+		//Enable pwm and timer for 2 sec capture
 		enable_timer(&htim14);
 		enable_pwm(&htim16, TIM_CHANNEL_1);
 	}
@@ -210,7 +210,7 @@ static void MX_TIM14_Init(void)
   htim14.Instance = TIM14;
   htim14.Init.Prescaler = 7999;
   htim14.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim14.Init.Period = 9999;
+  htim14.Init.Period = 1999;
   htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim14.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim14) != HAL_OK)
@@ -444,6 +444,28 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 
 	if(htm == &htim14){
+
+		//Check if no. of timer captures is = 5. 5 implies 10 sec have passed
+		if(timer_capture_occurred < 5){
+
+			//Checks if pwm is disabled
+			if((*(&htim16.Instance->CR1)&(0x01)) == false){
+				//Enabled pwm
+				enable_pwm(&htim16, TIM_CHANNEL_1);
+
+			}else{
+				//Disabled pwm
+				disable_pwm(&htim16, TIM_CHANNEL_1);
+			}
+
+			//Incrememnt timer capture counter
+			timer_capture_occurred++;
+
+			return;
+		}
+
+		//Reset variable
+		timer_capture_occurred = 0;
 
 		//Decrement number of pending buffer slots
 		serial_buffer.num_pending--;
