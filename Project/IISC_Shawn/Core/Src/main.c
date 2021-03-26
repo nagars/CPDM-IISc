@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../../inc/serial_port.h"
+#include "serial_port.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,8 +103,12 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
+  //Declare Serial port buffer
+  uint8_t serial_buffer[5] = {0};
   //Enable Timer14 Peripheral
 
+  //init serial port
+  serial_port_init(serial_buffer, &huart1);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -114,6 +118,8 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+
+
   }
   /* USER CODE END 3 */
 }
