@@ -2,6 +2,7 @@
 #define SERIAL_PORT_H
 
 #include "definitons.h"
+#include "dma.h"
 
 /**
  * Description: This driver acts as the serial port library for communication with
@@ -18,8 +19,8 @@
  * 8, Allows for user to assign serial port buffer
  */
 
-void serial_port_init(uint8_t*, UART_HandleTypeDef*);
+void serial_port_init(uint8_t*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
 
-void check_crc(void);
+bool check_crc(void);
 
 #endif
