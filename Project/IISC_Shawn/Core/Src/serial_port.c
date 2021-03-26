@@ -87,7 +87,6 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef* _uart_handle){
 
 }
 
-void HAL_USART_ErrorCallback(UART_HandleTypeDef* _uart_handle){
-
+void HAL_UART_ErrorCallback(UART_HandleTypeDef* _uart_handle){
 
 }

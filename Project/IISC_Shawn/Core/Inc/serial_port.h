@@ -17,6 +17,7 @@
  * 6, Fills ring buffer and updates indexes
  * 7, Serial port can only initialise 1 uart port as the uart buffer is a global buffer
  * 8, Allows for user to assign serial port buffer
+ * 9, Baud rate cannot be changed on the fly
  */
 
 void serial_port_init(uint8_t*, UART_HandleTypeDef*, DMA_HandleTypeDef*);

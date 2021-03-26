@@ -30,7 +30,7 @@ extern DMA_HandleTypeDef* p_dma_handle;
 extern UART_HandleTypeDef* p_uart_handle;
 
 /*Serial Acknowledge code*/
-#define ACK 	0xFE
-#define NACK 	0xFF
+#define ACK 	55
+#define NACK 	56
 
 #endif
