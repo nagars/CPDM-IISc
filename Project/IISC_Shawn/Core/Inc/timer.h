@@ -63,4 +63,6 @@ void disable_pwm(TIM_HandleTypeDef*, uint32_t);
  */
 void set_pwm_duty_cycle(TIM_HandleTypeDef*, uint8_t);
 
+void register_timer_complete_callback(void (*)(TIM_HandleTypeDef*));
+
 #endif

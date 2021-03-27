@@ -1,6 +1,7 @@
 #include "timer.h"
 
-uint8_t duty = 0;
+//Stores timer elapsed callback function pointer assigned by user
+void (*timer_complete_cb)(TIM_HandleTypeDef *_htm);
 
 void enable_timer(TIM_HandleTypeDef *_htm){
 
@@ -59,4 +60,14 @@ void set_pwm_duty_cycle(TIM_HandleTypeDef *_htm, uint8_t duty_cycle){
 
 }
 
+void register_timer_complete_callback(void (*_timer_complete_cb)(TIM_HandleTypeDef*)){
 
+	timer_complete_cb = _timer_complete_cb;
+
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
+
+	timer_complete_cb(htm);
+
+}

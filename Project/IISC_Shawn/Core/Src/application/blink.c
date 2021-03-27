@@ -34,14 +34,14 @@ void begin_new_operation(void){
 		msg[n] = 0;
 	}
 
-	//Begin new 10 sec LED blink operation with updated duty cycle
-	set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
-
 	//check for 4 and 7
 	check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 	//Transmit msg
 	serial_transmit_msg(msg, MSG_SIZE);
+
+	//Begin new 10 sec LED blink operation with updated duty cycle
+	set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
 
 	return;
 }
@@ -63,7 +63,7 @@ void conclude_current_operation(void){
 }
 
 
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
+void timer_elapsed_cb(TIM_HandleTypeDef *htm){
 
 	//Checks which timer has triggered callback
 	if(htm == &htim17){					//2 sec completed

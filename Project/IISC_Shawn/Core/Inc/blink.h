@@ -14,5 +14,6 @@ void disable_timers(void);
 void begin_new_operation(void);
 void conclude_current_operation(void);
 
+void timer_elapsed_cb(TIM_HandleTypeDef*);
 
 #endif

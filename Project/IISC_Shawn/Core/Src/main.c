@@ -123,6 +123,9 @@ int main(void)
   //Init serial port
   serial_port_init(&serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
 
+  //Register timer elapsed callback
+  register_timer_complete_callback(timer_elapsed_cb);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
