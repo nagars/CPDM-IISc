@@ -22,9 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "serial_port.h"
-#include "timer.h"
-#include "multiples.h"
+#include "blink.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +55,10 @@ RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
 
 //Declare char array to store response to pc
 char msg[MSG_SIZE];
+
+//Operatin complete flag to track when operation of instruction is complete
+bool operation_complete_flag = true;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -131,30 +133,47 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-	//Wait for data to be available on buffer
-	while(serial_buffer.num_pending == 0);
-
-	//Check if timer14 is disabled by checking the CEN bit of CR1 register.
-	//This confirms if the timers are implementing instructions from the pc.
-	//If disabled, it means the led is not blinking and all timers are disabled.
-	if((*(&htim14.Instance->CR1)&(0x01)) == false){
-
-		//Begin 10 sec LED blink operation with updated duty cycle
-		set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
-
-		//check for 4 and 7
-		check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
-
-		//Transmit msg
-		serial_transmit_msg(msg, MSG_SIZE);
-
-		//Enable pwm and timers
-		enable_timer(&htim14);			//triggers every 10sec (for led operation)
-		enable_timer(&htim17);			//triggers every 2 sec (for blinking)
-		enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
-
+	//Checks for data to be available on buffer, else system is idle
+	if(serial_buffer.num_pending == 0){
+		continue;
 	}
 
+		//Check if timer14 is disabled by checking the CEN bit of CR1 register.
+		//If enabled, it means the timers are implementing instructions from the pc (blinking).
+		//If disabled, it means the led is not blinking and all timers are disabled.
+		//Required for initial bootup when timers are disabled as well as if there was
+		//a considerable delay between the first and second instruction. System is designed to
+		//go back to idle once an instruction is complete and nothing is pending.
+		if((*(&htim14.Instance->CR1)&(0x01)) == false){
+
+			//Load pwm, calculate multiples and send response
+			begin_new_operation();
+
+			//Start timers
+			enable_timers();
+
+		}
+
+		//check if previous operation has completed
+		if(operation_complete_flag == true){
+
+			//Update buffer indexes
+			conclude_current_operation();
+
+			//Check if another data instruction is waiting in queue
+			if(serial_buffer.num_pending == 0){
+
+				//Disabled timers if nothing pending
+				disable_timers();
+
+			}else{
+
+				//Load pwm, calculate multiples and send response
+				begin_new_operation();
+
+			}
+
+	}
 
   }
   /* USER CODE END 3 */
@@ -512,65 +531,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
-
-	//Checks which timer has triggered callback
-	if(htm == &htim17){
-
-		//Checks if pwm is disabled
-		if((*(&htim16.Instance->CR1)&(0x01)) == false){
-			//Enabled pwm
-			enable_pwm(&htim16, TIM_CHANNEL_1);
-
-		}else{
-			//Disabled pwm
-			disable_pwm(&htim16, TIM_CHANNEL_1);
-		}
-
-	} else if(htm == &htim14){			//10 sec completed
-
-		//disable timer17
-		disable_timer(&htim17);
-
-		//Decrement number of pending buffer slots
-		serial_buffer.num_pending--;
-
-		//Increment read index on buffer
-		serial_buffer.read_index++;
-
-		//Reset read_index if it exceeds buffer size
-		if(serial_buffer.read_index >= SERIAL_BUFFER_SIZE){
-			serial_buffer.read_index = 0;
-		}
-
-		//Check if another data instruction is waiting in queue
-		if(serial_buffer.num_pending == 0){
-
-			//disable both timers and pwm
-			disable_timer(&htim14);
-			disable_pwm(&htim16, TIM_CHANNEL_1);
-
-		}else{
-
-			//Begin new 10 sec LED blink operation with updated duty cycle
-			set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
-
-			//check for 4 and 7
-			check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
-
-			//Transmit msg
-			serial_transmit_msg(msg, MSG_SIZE);
-
-			//Enable timer for led blink
-			enable_timer(&htim17);
-		}
-
-		return;
-
-	}
-
-}
 
 /* USER CODE END 4 */
 
