@@ -50,22 +50,6 @@ void serial_transmit_msg(char* msg, uint8_t num_bytes){
 	return;
 }
 
-void encode_crc(void){
-
-
-	return;
-}
-
-bool check_crc(void){
-
-	//Performs crc checks
-
-	//returns success / failure
-	return SUCCESS;
-}
-
-
-
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 
 	//check which uart handle triggered callback

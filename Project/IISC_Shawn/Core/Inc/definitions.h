@@ -6,12 +6,16 @@
 
 /**
  * @file definitions.h
- * @brief Holds various definitons common to entire project
+ * @brief Holds various definitions common to entire project
  */
 
 /*Status*/
 #define SUCCESS 1
 #define FAILURE 0
+
+/*Serial Acknowledge code*/
+#define ACK 	55
+#define NACK 	56
 
 /*Serial Port Buffer*/
 #ifndef SERIAL_BUFFER_SIZE
@@ -19,7 +23,9 @@
 #endif
 
 /*UART Buffer*/
-#define UART_BUFFER_SIZE 1
+#ifndef UART_BUFFER_SIZE
+	#define UART_BUFFER_SIZE 1
+#endif
 
 /*Buffer Struct*/
 typedef struct{
@@ -37,6 +43,7 @@ extern TIM_HandleTypeDef htim17;
 
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
+
 extern DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 
 /*externs of variable/pointers*/
@@ -44,8 +51,5 @@ extern RING_BUFFER* p_serial_buffer;
 extern DMA_HandleTypeDef* p_dma_handle;
 extern UART_HandleTypeDef* p_uart_handle;
 
-/*Serial Acknowledge code*/
-#define ACK 	55
-#define NACK 	56
 
 #endif

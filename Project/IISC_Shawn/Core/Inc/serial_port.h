@@ -1,8 +1,8 @@
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 
-#include <definitions.h>
 #include "dma.h"
+#include "crc.h"
 
 /**
  * @file serial_port.h
@@ -41,22 +41,5 @@ void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
  */
 void serial_transmit_msg(char* , uint8_t);
 
-/**
- * @brief Description: calculates crc ofir outgoing message
- *
- * @param void
- *
- * @return void
- */
-void encode_crc(void);
-
-/**
- * @brief Description: calculates crc of incoming message
- *
- * @param void
- *
- * @return void
- */
-bool check_crc(void);
 
 #endif

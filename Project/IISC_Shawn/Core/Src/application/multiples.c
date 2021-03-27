@@ -46,7 +46,7 @@ bool check_multiple_of_4(uint8_t val){
 	return false;
 }
 
-bool check_multiple_of_7(int val){
+bool check_multiple_of_7(int8_t val){
 
 	/*https://www.geeksforgeeks.org/divisibility-by-7/#:~:
 	text=Divisibility%20by%207%20can%20be,this%20until%20a%20small%20number.*/
