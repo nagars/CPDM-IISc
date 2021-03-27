@@ -62,12 +62,15 @@ void set_pwm_duty_cycle(TIM_HandleTypeDef *_htm, uint8_t duty_cycle){
 
 void register_timer_complete_callback(void (*_timer_complete_cb)(TIM_HandleTypeDef*)){
 
+	//assigns user function to be called on timer elapse
 	timer_complete_cb = _timer_complete_cb;
 
 }
 
+//Triggered when timer capture compare occurs
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 
+	//Calls user assigned function
 	timer_complete_cb(htm);
 
 }

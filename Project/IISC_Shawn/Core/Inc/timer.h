@@ -63,6 +63,13 @@ void disable_pwm(TIM_HandleTypeDef*, uint32_t);
  */
 void set_pwm_duty_cycle(TIM_HandleTypeDef*, uint8_t);
 
+/**
+ * @brief Description: registers user callback function called on timer elapse
+ *
+ * @param void (*)(TIM_HandleTypeDef*): Function pointer to assign
+ *
+ * @return void
+ */
 void register_timer_complete_callback(void (*)(TIM_HandleTypeDef*));
 
 #endif

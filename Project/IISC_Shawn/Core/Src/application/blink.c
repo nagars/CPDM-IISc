@@ -29,6 +29,9 @@ void begin_new_operation(void){
 	//clear operation complete flag
 	operation_complete_flag = false;
 
+	//Begin new 10 sec LED blink operation with updated duty cycle
+	set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
+
 	//clear msg buffer
 	for(uint8_t n = 0; n < MSG_SIZE; n++){
 		msg[n] = 0;
@@ -39,9 +42,6 @@ void begin_new_operation(void){
 
 	//Transmit msg
 	serial_transmit_msg(msg, MSG_SIZE);
-
-	//Begin new 10 sec LED blink operation with updated duty cycle
-	set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
 
 	return;
 }
