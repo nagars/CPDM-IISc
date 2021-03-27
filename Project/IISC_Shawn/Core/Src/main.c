@@ -134,7 +134,7 @@ int main(void)
 	//Wait for data to be available on buffer
 	while(serial_buffer.num_pending == 0);
 
-	//Check if timer14 is disabled by checking the CEN but of CR1 register.
+	//Check if timer14 is disabled by checking the CEN bit of CR1 register.
 	//This confirms if the timers are implementing instructions from the pc.
 	//If disabled, it means the led is not blinking and all timers are disabled.
 	if((*(&htim14.Instance->CR1)&(0x01)) == false){
@@ -142,13 +142,13 @@ int main(void)
 		//Begin 10 sec LED blink operation with updated duty cycle
 		set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
 
+		//check for 4 and 7
+		check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
+
 		//Enable pwm and timers
 		enable_timer(&htim14);			//triggers every 10sec (for led operation)
 		enable_timer(&htim17);			//triggers every 2 sec (for blinking)
 		enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
-
-		//check for 4 and 7
-		check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 		//Transmit msg
 	}

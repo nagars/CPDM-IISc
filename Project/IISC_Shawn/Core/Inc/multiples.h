@@ -6,6 +6,6 @@
 void check_multiples(uint8_t, char*);
 
 bool check_multiple_of_4(uint8_t);
-bool check_multiple_of_7(uint8_t);
+bool check_multiple_of_7(int);
 
 #endif

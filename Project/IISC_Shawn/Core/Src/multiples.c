@@ -10,7 +10,7 @@ void check_multiples(uint8_t val, char* msg){
 	multiple_code = check_multiple_of_4(val);
 
 	//check for 7 (Left shifted for bit1)
-	multiple_code = check_multiple_of_7(val) << 1;
+	multiple_code |= check_multiple_of_7(val) << 1;
 
 	char c_val = (char)val;
 	//prepare message
@@ -46,12 +46,10 @@ bool check_multiple_of_4(uint8_t val){
 	return false;
 }
 
-bool check_multiple_of_7(uint8_t _val){
+bool check_multiple_of_7(int val){
 
 	/*https://www.geeksforgeeks.org/divisibility-by-7/#:~:
 	text=Divisibility%20by%207%20can%20be,this%20until%20a%20small%20number.*/
-
-	int val = _val;
 
 	if(val < 0){
 		val = -val;
@@ -67,6 +65,6 @@ bool check_multiple_of_7(uint8_t _val){
 		return false;
 	}
 
-	return check_multiple_of_7( val / 10 - 2 * ( val - val / 10 * 10));
+	return check_multiple_of_7(val/10 - 2*(val - (val/10)*10));
 
 }
