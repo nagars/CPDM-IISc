@@ -36,6 +36,26 @@ void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_han
 	return;
 }
 
+void serial_transmit_msg(char* msg, uint8_t num_bytes){
+
+	//encode crc
+
+	//append to data
+
+	//Transmit message
+	if(HAL_UART_Transmit_IT(p_uart_handle, (uint8_t*)msg, num_bytes) != HAL_OK){
+
+	}
+
+	return;
+}
+
+void encode_crc(void){
+
+
+	return;
+}
+
 bool check_crc(void){
 
 	//Performs crc checks

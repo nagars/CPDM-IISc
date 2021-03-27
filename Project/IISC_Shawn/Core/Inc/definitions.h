@@ -18,6 +18,9 @@
 	#define SERIAL_BUFFER_SIZE 10
 #endif
 
+/*Transmit msg buffer*/
+#define MSG_SIZE	10
+
 /*UART Buffer*/
 #define UART_BUFFER_SIZE 1
 

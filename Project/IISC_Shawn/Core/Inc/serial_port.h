@@ -33,6 +33,24 @@
 void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
 
 /**
+ * @brief Description: transmits message via initialised uart with crc
+ *
+ * @param char* : character array to transmit
+ * @param uint8_t : Number of bytes to transmit
+ * @return void
+ */
+void serial_transmit_msg(char* , uint8_t);
+
+/**
+ * @brief Description: calculates crc ofir outgoing message
+ *
+ * @param void
+ *
+ * @return void
+ */
+void encode_crc(void);
+
+/**
  * @brief Description: calculates crc of incoming message
  *
  * @param void

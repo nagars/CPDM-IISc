@@ -56,7 +56,7 @@ DMA_HandleTypeDef hdma_memtomem_dma1_channel1;
 RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
 
 //Declare char array to store response to pc
-char msg[10];
+char msg[MSG_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -145,12 +145,14 @@ int main(void)
 		//check for 4 and 7
 		check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
+		//Transmit msg
+		serial_transmit_msg(msg, MSG_SIZE);
+
 		//Enable pwm and timers
 		enable_timer(&htim14);			//triggers every 10sec (for led operation)
 		enable_timer(&htim17);			//triggers every 2 sec (for blinking)
 		enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
 
-		//Transmit msg
 	}
 
 
@@ -554,13 +556,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htm){
 			//Begin new 10 sec LED blink operation with updated duty cycle
 			set_pwm_duty_cycle(&htim16, serial_buffer.buffer[serial_buffer.read_index]);
 
-			//Enable timer for led blink
-			enable_timer(&htim17);
-
-			//Check 4 and 7
+			//check for 4 and 7
 			check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
-			//transmit result
+			//Transmit msg
+			serial_transmit_msg(msg, MSG_SIZE);
+
+			//Enable timer for led blink
+			enable_timer(&htim17);
 		}
 
 		return;
