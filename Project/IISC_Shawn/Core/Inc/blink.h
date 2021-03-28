@@ -19,7 +19,9 @@
 */
 
 /*Transmit msg buffer size*/
-#define MSG_SIZE	10
+#ifndef MSG_SIZE
+	#define MSG_SIZE	8
+#endif
 
 /**
  * @brief Description: Enables timers.

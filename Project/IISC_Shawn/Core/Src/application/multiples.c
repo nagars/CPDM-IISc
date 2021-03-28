@@ -1,7 +1,7 @@
 #include "multiples.h"
 #include <string.h>
 
-void check_multiples(uint8_t val, char* msg){
+void check_multiples(const uint8_t val, unsigned char* msg){
 
 	//init variable to hold code indicating if val is a multiple of 4,7,both or neither
 	uint8_t multiple_code = 0;
@@ -12,20 +12,19 @@ void check_multiples(uint8_t val, char* msg){
 	//check for 7 (Left shifted for bit1)
 	multiple_code |= check_multiple_of_7(val) << 1;
 
-	char c_val = (char)val;
 	//prepare message
 	switch(multiple_code){
 	case 0b00:
-		strcpy(msg, &c_val);
+		memcpy(msg, &val, 1);
 		break;
 	case 0b01:
-		strcpy(msg, "CPDM");
+		memcpy(msg, "CPDM", 4);
 		break;
 	case 0b10:
-		strcpy(msg,"IISc");
+		memcpy(msg,"IISc", 4);
 		break;
 	case 0b11:
-		strcpy(msg,"CPDM IISc");
+		memcpy(msg,"CPDM IISc", 4);
 		break;
 	default:
 		break;
@@ -46,7 +45,7 @@ bool check_multiple_of_4(uint8_t val){
 	return false;
 }
 
-bool check_multiple_of_7(int val){
+bool check_multiple_of_7(int8_t val){
 
 	/*https://www.geeksforgeeks.org/divisibility-by-7/#:~:
 	text=Divisibility%20by%207%20can%20be,this%20until%20a%20small%20number.*/

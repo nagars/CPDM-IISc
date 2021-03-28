@@ -1,7 +1,7 @@
 #include "blink.h"
 
 extern RING_BUFFER serial_buffer;		//Struct containing indexes and buffer
-extern char msg[MSG_SIZE];				//Char array for message to be return to pc
+extern unsigned char msg[MSG_SIZE];		//Char array for message to be return to pc
 extern bool operation_complete_flag;	//To track of current blink operation is done or not
 
 void enable_timers(void){
@@ -41,7 +41,7 @@ void begin_new_operation(void){
 	check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 	//Transmit msg
-	serial_transmit_msg(msg, MSG_SIZE);
+	serial_transmit(msg, MSG_SIZE);
 
 	return;
 }

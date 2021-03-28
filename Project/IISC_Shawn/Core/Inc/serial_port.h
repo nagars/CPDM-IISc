@@ -1,8 +1,8 @@
 #ifndef SERIAL_PORT_H
 #define SERIAL_PORT_H
 
-#include <definitions.h>
 #include "dma.h"
+#include "crc.h"
 
 /**
  * @file serial_port.h
@@ -21,6 +21,16 @@
  * 9, Baud rate cannot be changed on the fly
  */
 
+/*Serial Port Buffer*/
+#ifndef SERIAL_BUFFER_SIZE
+	#define SERIAL_BUFFER_SIZE 8
+#endif
+
+/*UART Buffer*/
+#ifndef UART_BUFFER_SIZE
+	#define UART_BUFFER_SIZE 10
+#endif
+
 /**
  * @brief Description: Initialisation routine for serial port driver
  *
@@ -35,28 +45,11 @@ void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
 /**
  * @brief Description: transmits message via initialised uart with crc
  *
- * @param char* : character array to transmit
+ * @param const uint8_t* : data array to transmit
  * @param uint8_t : Number of bytes to transmit
  * @return void
  */
-void serial_transmit_msg(char* , uint8_t);
+void serial_transmit(const uint8_t*, uint8_t);
 
-/**
- * @brief Description: calculates crc ofir outgoing message
- *
- * @param void
- *
- * @return void
- */
-void encode_crc(void);
-
-/**
- * @brief Description: calculates crc of incoming message
- *
- * @param void
- *
- * @return void
- */
-bool check_crc(void);
 
 #endif
