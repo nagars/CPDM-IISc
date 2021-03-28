@@ -137,19 +137,22 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
 	  	//Basic test to see if crc is working
-	  	uint8_t data_r[3];		//data received by system
-	  	uint8_t data_s = 36;	//data to be sent
+	  	uint8_t data_r[15] = {0};		//data received by system
+	  	uint8_t data_s[15] = {0};	//data to be sent
+	  	data_s[0] = 70;
 
-	  	//calculate crc
-	  	uint16_t crc = calculate_crc16(crc16_ccitt_table, &data_s, 1);
+	  	serial_transmit_msg(data_s,1);
 
-	  	//Hypothetical data with appended crc sent from 1 system and received by other system
-	  	data_r[0] = data_s;
-	  	data_r[1] = (uint8_t)(crc >> 8);
-	  	data_r[2] = (uint8_t)crc;
-
-	  	//check if data received is valid. returns 0 if yes.
-	  	uint16_t remainder = calculate_crc16(crc16_ccitt_table, data_r, 3);
+//	  	//calculate crc
+//	  	uint16_t crc = calculate_crc16(crc16_ccitt_table, data_s, 1);
+//
+//	  	//Hypothetical data with appended crc sent from 1 system and received by other system
+//	  	data_r[0] = data_s[0];
+//	  	data_r[13] = (uint8_t)(crc >> 8);
+//	  	data_r[14] = (uint8_t)crc;
+//
+//	  	//check if data received is valid. returns 0 if yes.
+//	  	uint16_t status = check_crc16(crc16_ccitt_table, data_r, 15);
 
 	  while(1);
 

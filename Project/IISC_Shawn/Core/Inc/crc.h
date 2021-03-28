@@ -14,6 +14,7 @@
  * 3, Use polynomial value 0x1021 (x16 + x12 + x5 + 1)
  * 4, Return a status indicating if crc check was passed or not
  * 5, Use a pre-determined lookup table to improve crc calculation speed
+ * 6, Array given should have last 2 bytes available for crc append
  *
  * @par References
  * 1, https://cs.fit.edu/code/svn/cse2410f13team7/wireshark/wsutil/crc16.c
@@ -27,6 +28,7 @@
 	#define CRC_SEED 0xffff
 #endif
 
+//Lookup table for crc16
 extern const int16_t crc16_ccitt_table[256];
 
 /**
@@ -34,7 +36,7 @@ extern const int16_t crc16_ccitt_table[256];
  *
  * @param const int16_t* : Lookup table to use for crc generation
  * @param uint8_t* : Data array to generate crc for and append to
- * @param const uint8_t : Size of data array
+ * @param const uint8_t : Size of data array (Ignore last 2 bytes reserved for crc)
  *
  * @return void
  */
@@ -65,11 +67,13 @@ uint16_t calculate_crc16(const int16_t* , const uint8_t*, uint8_t);
 /**
  * @brief Description: Checks if incoming message is valid using crc16
  *
- * @param void
+ * @param const int16_t : Lookup table to use for calculation
+ * @param const uint8_t* : Data array to generate crc for
+ * @param const uint8_t : Size of data array(Including 2 bytes reserved for crc)
  *
- * @return bool : true if yes, false if not
+ * @return bool : 1 if success, 0 if failed check
  */
-bool check_crc16(const int16_t* , const uint8_t*, uint8_t);
+bool check_crc16(const int16_t*, const uint8_t*, uint8_t);
 
 
 #endif

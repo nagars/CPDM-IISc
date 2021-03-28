@@ -39,23 +39,23 @@ const int16_t crc16_ccitt_table[256] =
 
 
 void append_crc16(const uint16_t crc, uint8_t* data_array,
-					const uint8_t size_of_array){
+					const uint8_t array_length){
 
 	//append crc to last 2 byts of data array
-	data_array[size_of_array - 2] = (uint8_t)(crc >> 8);	//casting uint16_t as uint8_t removed MSB
-	data_array[size_of_array - 1] = (uint8_t)crc;
+	data_array[array_length - 2] = (uint8_t)(crc >> 8);	//casting uint16_t as uint8_t removed MSB
+	data_array[array_length - 1] = (uint8_t)crc;
 
 	return;
 }
 
 uint16_t calculate_crc16(const int16_t* crc_lookup_table, const uint8_t* data_array,
-						uint8_t data_length){
+						uint8_t array_length){
 
 	//Load crc seed value
 	uint16_t crc = CRC_SEED;
 
 	//calculate crc for number of bytes specified by user
-	while (data_length-- != 0){
+	while (array_length-- != 0){
 		//Calculate crc
 		crc = (crc << 8) ^ crc_lookup_table[((crc >> 8) ^ *data_array++)];
 	}
@@ -70,7 +70,7 @@ void generate_crc16_msg(const int16_t* crc16_lookup_table, uint8_t* data_array,
 	//16bits should already have been appended to data buffer
 
 	//encode crc
-	int16_t crc = calculate_crc16(crc16_lookup_table, data_array, array_length);
+	int16_t crc = calculate_crc16(crc16_lookup_table, data_array, array_length - 2);
 
 	//append crc to data
 	append_crc16(crc, data_array, array_length);
@@ -79,10 +79,19 @@ void generate_crc16_msg(const int16_t* crc16_lookup_table, uint8_t* data_array,
 }
 
 bool check_crc16(const int16_t* crc_lookup_table, const uint8_t* data_array,
-		uint8_t data_length){
+		uint8_t array_length){
+
+	uint16_t crc_remainder = 0;
 
 	//Performs crc checks
+	crc_remainder = calculate_crc16(crc_lookup_table, data_array, array_length);
 
-	//returns success / failure
-	return SUCCESS;
+	//if 0, data is valid.
+	if(crc_remainder == 0){
+		return SUCCESS;
+	}else{
+		return FAILURE;
+	}
+
+
 }

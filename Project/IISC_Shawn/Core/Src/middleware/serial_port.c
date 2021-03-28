@@ -61,7 +61,7 @@ void serial_transmit_msg(const unsigned char* msg, uint8_t msg_size){
 	}
 
 	//Generate crc16 encoded transmit message.
-	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE - 2);
+	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE);
 
 	//Transmit message
 	if(HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE) != HAL_OK){
@@ -77,26 +77,25 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 	if(_uart_handle == &huart1){
 
 		//If crc failed, transmit NACK else, transmit ACK & Trigger DMA transfer
-		if(check_crc16() == FAILURE){
+		bool data_valid = check_crc16(crc16_ccitt_table, receive_buffer,
+							UART_BUFFER_SIZE);
+		if(data_valid == FAILURE){
 
 			//Transmit Not-Acknowledged
 			uint8_t send_nack = NACK;
 			if(HAL_UART_Transmit_IT(_uart_handle, &send_nack, 1) != HAL_OK){
 
-			}
+		}
 
 
-		}else{
+	}else{
 
-		//Trigger DMA transfer. To be replaced once crc implemented
-
-		//HAL_DMA_Start_IT(p_dma_handle, (uint32_t)CRC RESULT DATA,
-		//	(uint32_t)p_serial_buffer, 1);
+		//Trigger DMA transfer of valid data to serial buffer.
+		//Instruction from pc is only 1 bytes, hence 1 byte transferred
 		HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
 				(uint32_t)(p_serial_buffer->buffer + p_serial_buffer->write_index), 1);
 
 		}
-
 
 		return;
 	}
