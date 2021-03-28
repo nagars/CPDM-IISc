@@ -22,13 +22,13 @@
 #define SERIAL_BUFFER_SIZE 8
 
 /*UART Buffer*/
-#define UART_BUFFER_SIZE 10
+#define UART_BUFFER_SIZE 20//10
 
 /*CRC seed*/
 #define CRC_SEED 0xffff
 
 /*Messgae to transmit size*/
-#define MSG_SIZE 1
+#define MSG_SIZE 10//1
 
 /*********Type definitions******/
 /*Buffer Struct*/

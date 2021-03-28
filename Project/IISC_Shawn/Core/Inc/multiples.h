@@ -20,11 +20,11 @@
  * of 4 and/or 7. Generates response message
  *
  * @parm const uint8_t : data value to check
- * @param char* : Pointer to character buffer to store response message
+ * @param unsigned char* : Pointer to character buffer to store response message
  *
  * @return void
  */
-void check_multiples(const uint8_t, char*);
+void check_multiples(const uint8_t, unsigned char*);
 
 /**
  * @brief Description: Checks if the given value is a multiple of 4

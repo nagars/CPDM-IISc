@@ -1,7 +1,7 @@
 #include "blink.h"
 
 extern RING_BUFFER serial_buffer;		//Struct containing indexes and buffer
-extern char msg[MSG_SIZE];				//Char array for message to be return to pc
+extern unsigned char msg[MSG_SIZE];		//Char array for message to be return to pc
 extern bool operation_complete_flag;	//To track of current blink operation is done or not
 
 void enable_timers(void){

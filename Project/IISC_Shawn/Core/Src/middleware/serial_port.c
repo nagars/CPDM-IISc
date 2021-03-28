@@ -40,17 +40,18 @@ void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_han
 	return;
 }
 
-void serial_transmit_msg(const char* msg, uint8_t msg_size){
+void serial_transmit_msg(const unsigned char* msg, uint8_t msg_size){
 
 	//clear buffer
-	//Ensures last 2 bytes reserved for crc are 0 as required for crc16
+	//Ensures last 2 bytes reserved for crc are 0 as required for crc16.
+	//Rest of the transmit buffer is reserved for the msg
 	for(uint8_t n = 0; n < UART_BUFFER_SIZE; n++){
 		transmit_buffer[n] = 0;
 	}
 
 	//Ensures msg size fits within uart buffer after appending of crc
 	if(msg_size > UART_BUFFER_SIZE - 2){
-		//Copy enough of msg to fit in buffer. Ignore the rest
+		//Copy enough of msg to fit in buffer and leave 2 bytes. Ignore the rest
 		//strncpy((char*)transmit_buffer, msg, UART_BUFFER_SIZE - 2);
 		memcpy(transmit_buffer, msg, UART_BUFFER_SIZE - 2);
 	}else{
@@ -59,8 +60,8 @@ void serial_transmit_msg(const char* msg, uint8_t msg_size){
 		memcpy(transmit_buffer, msg, msg_size);
 	}
 
-	//Generate crc16 encoded transmit message
-	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE);
+	//Generate crc16 encoded transmit message.
+	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE - 2);
 
 	//Transmit message
 	if(HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE) != HAL_OK){

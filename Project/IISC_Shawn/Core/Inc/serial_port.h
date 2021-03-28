@@ -45,11 +45,11 @@ void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
 /**
  * @brief Description: transmits message via initialised uart with crc
  *
- * @param char* : character array to transmit
+ * @param const unsigned char* : character array to transmit
  * @param uint8_t : Number of bytes to transmit
  * @return void
  */
-void serial_transmit_msg(const char* , uint8_t);
+void serial_transmit_msg(const unsigned char* , uint8_t);
 
 
 #endif
