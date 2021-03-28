@@ -126,6 +126,15 @@ int main(void)
   //Register timer elapsed callback
   register_timer_complete_callback(timer_elapsed_cb);
 
+/******FOR TESTING******/
+	//Basic test to see if crc is working
+	uint8_t data_r[15] = {0};		//data received by system
+	uint8_t data_s[15] = {0};	//data to be sent
+	data_s[0] = 1;
+
+	serial_transmit_msg(data_s,1);
+/**********************/
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -135,26 +144,6 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
-	  	//Basic test to see if crc is working
-	  	uint8_t data_r[15] = {0};		//data received by system
-	  	uint8_t data_s[15] = {0};	//data to be sent
-	  	data_s[0] = 70;
-
-	  	serial_transmit_msg(data_s,1);
-
-//	  	//calculate crc
-//	  	uint16_t crc = calculate_crc16(crc16_ccitt_table, data_s, 1);
-//
-//	  	//Hypothetical data with appended crc sent from 1 system and received by other system
-//	  	data_r[0] = data_s[0];
-//	  	data_r[13] = (uint8_t)(crc >> 8);
-//	  	data_r[14] = (uint8_t)crc;
-//
-//	  	//check if data received is valid. returns 0 if yes.
-//	  	uint16_t status = check_crc16(crc16_ccitt_table, data_r, 15);
-
-	  while(1);
 
 	//Checks for data to be available on buffer, else system is idle
 	if(serial_buffer.num_pending == 0){
