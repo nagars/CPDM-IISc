@@ -1,7 +1,11 @@
 #include "serial_port.h"
+#include <string.h>
 
-//Declare UART buffer
+//Declare UART receive buffer
 uint8_t receive_buffer[UART_BUFFER_SIZE] = {0};
+
+//Declare UART transmit buffer
+uint8_t transmit_buffer[UART_BUFFER_SIZE] = {0};
 
 //Declare serial port ring buffer struct pointer
 RING_BUFFER* p_serial_buffer;
@@ -36,14 +40,30 @@ void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_han
 	return;
 }
 
-void serial_transmit_msg(char* msg, uint8_t num_bytes){
+void serial_transmit_msg(const char* msg, uint8_t msg_size){
 
-	//encode crc
+	//clear buffer
+	//Ensures last 2 bytes reserved for crc are 0 as required for crc16
+	for(uint8_t n = 0; n < UART_BUFFER_SIZE; n++){
+		transmit_buffer[n] = 0;
+	}
 
-	//append to data
+	//Ensures msg size fits within uart buffer after appending of crc
+	if(msg_size > UART_BUFFER_SIZE - 2){
+		//Copy enough of msg to fit in buffer. Ignore the rest
+		//strncpy((char*)transmit_buffer, msg, UART_BUFFER_SIZE - 2);
+		memcpy(transmit_buffer, msg, UART_BUFFER_SIZE - 2);
+	}else{
+		//Copy entire msg
+		//strncpy((char*)transmit_buffer, msg, msg_size);
+		memcpy(transmit_buffer, msg, msg_size);
+	}
+
+	//Generate crc16 encoded transmit message
+	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE);
 
 	//Transmit message
-	if(HAL_UART_Transmit_IT(p_uart_handle, (uint8_t*)msg, num_bytes) != HAL_OK){
+	if(HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE) != HAL_OK){
 
 	}
 
@@ -56,7 +76,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 	if(_uart_handle == &huart1){
 
 		//If crc failed, transmit NACK else, transmit ACK & Trigger DMA transfer
-		if(check_crc() == FAILURE){
+		if(check_crc16() == FAILURE){
 
 			//Transmit Not-Acknowledged
 			uint8_t send_nack = NACK;

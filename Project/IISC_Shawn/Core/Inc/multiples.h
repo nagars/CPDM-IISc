@@ -19,12 +19,12 @@
  * @brief Description: Calls functions to check if data is a multiple
  * of 4 and/or 7. Generates response message
  *
- * @parm uint8_t : data value to check
+ * @parm const uint8_t : data value to check
  * @param char* : Pointer to character buffer to store response message
  *
  * @return void
  */
-void check_multiples(uint8_t, char*);
+void check_multiples(const uint8_t, char*);
 
 /**
  * @brief Description: Checks if the given value is a multiple of 4

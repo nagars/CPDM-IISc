@@ -1,7 +1,7 @@
 #include "multiples.h"
 #include <string.h>
 
-void check_multiples(uint8_t val, char* msg){
+void check_multiples(const uint8_t val, char* msg){
 
 	//init variable to hold code indicating if val is a multiple of 4,7,both or neither
 	uint8_t multiple_code = 0;

@@ -9,6 +9,7 @@
  * @brief Holds various definitions common to entire project
  */
 
+/*******#defines*******/
 /*Status*/
 #define SUCCESS 1
 #define FAILURE 0
@@ -18,15 +19,18 @@
 #define NACK 	56
 
 /*Serial Port Buffer*/
-#ifndef SERIAL_BUFFER_SIZE
-	#define SERIAL_BUFFER_SIZE 10
-#endif
+#define SERIAL_BUFFER_SIZE 8
 
 /*UART Buffer*/
-#ifndef UART_BUFFER_SIZE
-	#define UART_BUFFER_SIZE 1
-#endif
+#define UART_BUFFER_SIZE 10
 
+/*CRC seed*/
+#define CRC_SEED 0xffff
+
+/*Messgae to transmit size*/
+#define MSG_SIZE 1
+
+/*********Type definitions******/
 /*Buffer Struct*/
 typedef struct{
 	  uint8_t write_index;	//Tracks which buffer slot is available to be filled
@@ -36,6 +40,8 @@ typedef struct{
 	  uint8_t buffer[SERIAL_BUFFER_SIZE];	//Buffer for serial port
 }RING_BUFFER;
 
+
+/******externs********/
 /*externs of peripherals*/
 extern TIM_HandleTypeDef htim14;
 extern TIM_HandleTypeDef htim16;

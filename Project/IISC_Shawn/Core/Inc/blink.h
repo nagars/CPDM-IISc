@@ -20,7 +20,7 @@
 
 /*Transmit msg buffer size*/
 #ifndef MSG_SIZE
-	#define MSG_SIZE	10
+	#define MSG_SIZE	8
 #endif
 
 /**

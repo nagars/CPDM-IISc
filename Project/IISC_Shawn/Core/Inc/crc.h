@@ -6,23 +6,28 @@
 /**
  * @file crc.h
  * @brief This driver performs crc coding and decoding. It implements
- * a crc16 - citt polynomial (x16 + x12 + x5 + 1).
+ * a crc16 - citt polynomial (x16 + x12 + x5 + 1) = 0x1021.
  *
  * @par feature list:
  * 1, Encode a msg to transmit with a calculated crc
  * 2, Decode incoming data through crc algorithm
  * 3, Use polynomial value 0x1021 (x16 + x12 + x5 + 1)
  * 4, Return a status indicating if crc check was passed or not
+ * 5, Use a pre-determined lookup table to improve crc calculation speed
  *
  * @par References
  * 1, https://cs.fit.edu/code/svn/cse2410f13team7/wireshark/wsutil/crc16.c
  * 2, http://www.sunshine2k.de/articles/coding/crc/understanding_crc.html#ch4
  * 3, https://stackoverflow.com/questions/22432066/how-to-use-table-based-crc-16-code
+ * 4, https://stackoverflow.com/questions/43279590/crc32c-appending-0s-crc-to-message
  */
 
-#define CRC_SEED 0xffff
+#ifndef CRC_SEED
+	#define CRC_SEED 0xffff
+#endif
 
-static const int16_t crc16_ccitt_table[256] =
+//Calculated using 0x1021 as the polynomial (x16 + x12 + x5 + 1)
+const int16_t crc16_ccitt_table[256] =
 {
  0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
  0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF,
@@ -60,24 +65,46 @@ static const int16_t crc16_ccitt_table[256] =
 
 
 /**
- * @brief Description: calculates crc ofir outgoing message
+ * @brief Description: Calculates crc and appends calculated crc to msg
  *
- * @param void
+ * @param const int16_t* : Lookup table to use for crc generation
+ * @param uint8_t* : Data array to generate crc for and append to
+ * @param const uint8_t : Size of data array
  *
  * @return void
  */
-void encode_crc(void);
-
-uint8_t calculate_crc(void);
+void generate_crc16_msg(const int16_t*, uint8_t*, const uint8_t);
 
 /**
- * @brief Description: calculates crc of incoming message
+ * @brief Description: appends calculated crc for outgoing message
  *
- * @param void
+ * @param const int16_t : crc
+ * @param uint8_t* : Data array to append crc to
+ * @param const uint8_t : Size of data array
  *
  * @return void
  */
-bool check_crc(void);
+void append_crc16(const uint16_t, uint8_t*, const uint8_t);
+
+/**
+ * @brief Description: calculates crc for given data array
+ *
+ * @param const int16_t : Lookup table to use for calculation
+ * @param const uint8_t* : Data array to generate crc for
+ * @param const uint8_t : Size of data array
+ *
+ * @return uint16_t : crc calculated
+ */
+uint16_t calculate_crc16(const int16_t* , const uint8_t*, uint8_t);
+
+/**
+ * @brief Description: Checks if incoming message is valid using crc16
+ *
+ * @param void
+ *
+ * @return bool : true if yes, false if not
+ */
+bool check_crc16(void);
 
 
 #endif
