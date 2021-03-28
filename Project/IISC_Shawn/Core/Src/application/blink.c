@@ -6,9 +6,8 @@ extern bool operation_complete_flag;	//To track of current blink operation is do
 
 void enable_timers(void){
 
-	//Enable pwm and timers
+	//Enable pwm and timer
 	enable_timer(&htim14);				//triggers every 10sec (for led and msg response operation)
-	enable_timer(&htim17);				//triggers every 2 sec (for blinking)
 	enable_pwm(&htim16, TIM_CHANNEL_1);	//for pwm
 
 	return;
@@ -16,9 +15,8 @@ void enable_timers(void){
 
 void disable_timers(void){
 
-	//disable both timers and pwm
+	//Disable timer and pwm
 	disable_timer(&htim14);
-	disable_timer(&htim17);
 	disable_pwm(&htim16, TIM_CHANNEL_1);
 
 	return;
@@ -66,19 +64,7 @@ void conclude_current_operation(void){
 void timer_elapsed_cb(TIM_HandleTypeDef *htm){
 
 	//Checks which timer has triggered callback
-	if(htm == &htim17){					//2 sec completed
-
-		//Checks if pwm is disabled
-		if((*(&htim16.Instance->CR1)&(0x01)) == false){
-			//Enabled pwm
-			enable_pwm(&htim16, TIM_CHANNEL_1);
-
-		}else{
-			//Disabled pwm
-			disable_pwm(&htim16, TIM_CHANNEL_1);
-		}
-
-	} else if(htm == &htim14){			//10 sec completed
+	if(htm == &htim14){			//10 sec completed
 
 		//set operation_complete flag
 		operation_complete_flag = true;

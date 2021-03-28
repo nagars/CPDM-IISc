@@ -63,7 +63,6 @@ void conclude_current_operation(void);
 
 /**
  * @brief Description: called upon timer elapse. Checks which timer triggered it.
- * tim17 -> toggles pwm
  * tim14 -> set operation_complete flag
  *
  * @parm TIM_HandleTypeDef*: Handle of timer that triggered callback

@@ -5,7 +5,12 @@ void (*timer_complete_cb)(TIM_HandleTypeDef *_htm);
 
 void enable_timer(TIM_HandleTypeDef *_htm){
 
-	/*HAL Macro to initialize timer and enable module*/
+
+	//Clear Capture occurred bit. Issue with HAL? Seems to be set upon init of timer,
+	//causing interrupt trigger upon mcu bootup. Clearing this bit prevents that.
+	 __HAL_TIM_CLEAR_FLAG(_htm,TIM_FLAG_CC1 );
+
+	//HAL Macro to initialize timer and enable module
 	if(HAL_TIM_Base_Start_IT(_htm) != HAL_OK){
 	}
 
@@ -15,9 +20,10 @@ void enable_timer(TIM_HandleTypeDef *_htm){
 
 void disable_timer(TIM_HandleTypeDef *_htm){
 
-	/*HAL Macro to disable module*/
+	//HAL Macro to disable module*/
 	if(HAL_TIM_Base_Stop_IT(_htm) != HAL_OK){
 	}
+
 
 	return;
 }
