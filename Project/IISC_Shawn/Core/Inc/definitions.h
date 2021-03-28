@@ -19,10 +19,10 @@
 #define NACK 	56
 
 /*Serial Port Buffer*/
-#define SERIAL_BUFFER_SIZE 8
+#define SERIAL_BUFFER_SIZE 10
 
 /*UART Buffer*/
-#define UART_BUFFER_SIZE 15
+#define UART_BUFFER_SIZE 12
 
 /*CRC seed*/
 #define CRC_SEED 0xffff

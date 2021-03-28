@@ -132,7 +132,7 @@ int main(void)
 	uint8_t data_s[15] = {0};	//data to be sent
 	data_s[0] = 1;
 
-	serial_transmit_msg(data_s,1);
+	serial_transmit(data_s,1);
 /**********************/
 
   /* USER CODE END 2 */

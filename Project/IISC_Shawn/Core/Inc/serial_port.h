@@ -49,7 +49,7 @@ void serial_port_init(RING_BUFFER*, UART_HandleTypeDef*, DMA_HandleTypeDef*);
  * @param uint8_t : Number of bytes to transmit
  * @return void
  */
-void serial_transmit_msg(const uint8_t*, uint8_t);
+void serial_transmit(const uint8_t*, uint8_t);
 
 
 #endif
