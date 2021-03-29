@@ -15,14 +15,15 @@ window.title("Shawn's Serial Terminal")
 # Variable Definitions
 #transmit_msg = 0  # Data to transmit given by user
 echo_flag = tkinter.BooleanVar()  # Checks if echo checkbox is set/cleared
-
 serial_buffer_size = 12 # Transmit/Receive buffer size
+ack = 55 # Acknowledge value returned by stm
+nack = 56 # Not-Acknowledge value returned by stm
 
 ########## CRC FUNCTIONS ################
 
 def crc16(data : bytearray, length):
-    if data is None or length <= 0:
-        return 0
+    if data == 0 or length <= 0:
+        return 
         
     polynomial = 0x1021
     crc = 0xFFFF
@@ -56,7 +57,6 @@ def serial_transmit(instruction):
 
     #Calculate CRC for message segment.
     crc = crc16(transmit_buffer, serial_buffer_size - 2)
-    print(crc)
     #Append crc to transmit buffer
     transmit_buffer[serial_buffer_size - 2] = (crc >> 8) & 0xff
     transmit_buffer[serial_buffer_size - 1] = crc & 0xff
@@ -64,18 +64,60 @@ def serial_transmit(instruction):
     #Transmit
     serial_port.write(transmit_buffer)
 
-    #If Echo is on, Print to serial
-    if echo_flag.get() == 1:
-        n = serial_buffer_size - 1
-        while n >= 0:
-            terminal_box.insert('1.0', " ")
-            terminal_box.insert('1.0', transmit_buffer[n])  
-            n = n - 1
+    #Wait for acknowledge/not-acknowledge
+    status = wait_for_ack()
 
-        terminal_box.insert('1.0', "Sent: ")
+    #If ack, print data to serial if necessary, else re-transmit instruction
+    if status == True:
+        terminal_box.insert('1.0', "\nTransmit instruction succeeded: Acknowledge returned\n")
+        #If Echo is on, Print data sent to serial 
+        if echo_flag.get() == 1:
+            n = serial_buffer_size - 1
+            while n >= 0:
+                terminal_box.insert('1.0', " ")
+                terminal_box.insert('1.0', transmit_buffer[n])  
+                n = n - 1
 
-
+            terminal_box.insert('1.0', "Sent: ")
+    
     return
+
+def wait_for_ack():
+    #Create empty array of specified bytes
+    receive_buffer = bytearray([0] * serial_buffer_size)
+    
+    #Read 12 bytes of data on serial line
+    #Time out set at 2 sec at initialisation of COM port
+    receive_buffer = serial_port.read(serial_buffer_size)
+
+    #Check if timeout occurred. timeout does not throw an exception
+    #Hence I just check if size of receive buffer is 0
+    timeout_occurred = len(receive_buffer)
+    
+    #if data was read, timeout_occurred should be non-zero
+    if timeout_occurred == 0:
+        terminal_box.insert('1.0', "\nTransmit instruction failed: Read timeout occurred. No data returned. Re-attempting\n")
+        return False
+
+    #Data received. Check data integrity. Returns 0 if valid
+    data_valid = crc16(receive_buffer, serial_buffer_size)
+
+    #if data is valid, check if data is ack
+    #if data invalid or nack received, re-transmit instruction
+    if data_valid == 0:     #valid
+        if receive_buffer[0] == ack:
+            return True
+        elif receive_buffer[0] == nack:
+            terminal_box.insert('1.0', "\nTransmit instruction failed: Not acknowledge returned. Target maybe busy or data corruption occurred. Re-attempting\n")
+            return False
+    else:
+        terminal_box.insert('1.0', "\nTransmit instruction failed: Invalid data returned. Possible data corruption. Re-attempting\n")
+        return False
+
+
+
+
+
 
 ########################################
 
@@ -119,7 +161,7 @@ def set_com_button_pressed():
             #Open selected com port with default parameters. Returned port handle is set as global variable
             global serial_port 
             serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
-                                        bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE)
+                                        bytesize = 8, timeout = 1, stopbits=serial.STOPBITS_ONE)
 
             #Check if COM port failed to open. Print error message
             if serial_port.isOpen() == 0:
