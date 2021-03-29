@@ -1,80 +1,121 @@
-from tkinter import *       #Import tkiner library used to generate GUI
-from tkinter import scrolledtext    #Import library for scroll text box
+from tkinter import *                   #Import tkiner library used to generate GUI
+from tkinter import scrolledtext        #Import library for scroll text box
+import tkinter
+import serial.tools.list_ports as port_list     #Import function to list serial ports. Re-defined as port_list
 
 #Generate window
-window = Tk()               
+window = Tk()
 #Define window size
-window.geometry('360x250')
+window.geometry('375x250')
 #Set title for window
 window.title("Shawn's Serial Terminal")
 
 #Variable Definitions
-com_port = 0
-transmit_msg = 0
-echo_flag = 0
-echo_checkbox = 0
+com_port = 0  # Holds com port value given
+transmit_msg = 0  # Data to transmit given by user
+echo_flag = tkinter.BooleanVar()  # Checks if echo checkbox is set/cleared
 
+#######UI EVENT TRIGGERED FUNCTIONS#######
 #Define a function to set the com port text to a variable
-def set_com_button_pressed() :
+def set_com_button_pressed():
+    #Get COM port string from textbox
     com_port = com_port_textbox.get()
+    #Check if string size is valid, else return error
+    string_length = len(com_port)
 
-#Define a functiono to set the message to send to a variable
+    if string_length == 0:
+        terminal_box.insert('1.0', "No COM Port Set\n")
+    elif string_length < 4:
+        terminal_box.insert('1.0', "Invalid COM Port\n")
+    elif string_length > 5:
+        terminal_box.insert('1.0', "Invalid COM Port\n")
+    else:
+        #Open selected com port
+
+        #Print com port valid
+        
+        return
+
+#Define a function to set the message to send to a variable
 def send_button_pressed():
+    #Ensure COM port is set and open
+
+    #Read message to transmit from textbox
     transmit_msg = send_message_textbox.get()
+    #Check if string size is valid, else print error and return
+    string_length = len(transmit_msg)
+    if string_length == 0:
+        terminal_box.insert('1.0', "No TX Message Given\n")
+        return
+
+    #Convert the transmit value from string to integer
+    transmit_val = int(transmit_msg)
+
+    print (transmit_val)
+    #Check if value exceeds 100
+    if(transmit_val > 100):
+        terminal_box.insert('1.0', "TX Message Exceeds Max Value of 100\n")
+        return
+    elif(transmit_val < 0):
+        terminal_box.insert('1.0', "TX Message Cannot be Negative\n")
+        return
+
+    #Call serial transmit function
+
+    #print data sent if successful
+
+    return
+
+###########################################
+
 
 ########## INIT UI OBJECTS ########################
 #Create a label for com port to be placed near text box
-com_port_label = Label(window, text = "COM PORT")
+com_port_label = Label(window, text="COM PORT")
 #Set its position in top left corner
-com_port_label.grid(column = 0, row = 0)
+com_port_label.grid(column=0, row=0)
 
 #Create a text box to get the COM port from user
-com_port_textbox = Entry(window, width = 10)
+com_port_textbox = Entry(window, width=10)
 #Sets its position
-com_port_textbox.grid(column = 0, row = 1)
+com_port_textbox.grid(column=0, row=1)
 #set focus on it
 com_port_textbox.focus()
 
 #Create a button to send data on selected port
-set_com_button = Button(window, text = "Set COM", command = set_com_button_pressed)
+set_com_button = Button(window, text="Set COM", command=set_com_button_pressed)
 #Sets its position
-set_com_button.grid(column = 3, row = 0)
+set_com_button.grid(column=3, row=0)
 
 #Create a checkbox to register if the user wants the sent data to be echoed in terminal
-echo_checkbox = Checkbutton(window, text = "Enable Echo")
+echo_checkbox = Checkbutton(window, text="Enable Echo", variable=echo_flag)
 #Set position
-echo_checkbox.grid(column = 3, row = 1)
+echo_checkbox.grid(column=3, row=1)
 
 #Create a text box to get the transmit message from user
-send_message_textbox = Entry(window, width = 26)
+send_message_textbox = Entry(window, width=3)
 #Set its position
-send_message_textbox.grid(column = 1, row = 5)
+send_message_textbox.grid(column=1, row=5)
 
 #Create a label for send message to be placed near text box
-tx_msg_label = Label(window, text = "TX MSG")
+tx_msg_label = Label(window, text="TX MSG")
 #Set its position next to it
-tx_msg_label.grid(column = 0, row = 5)
+tx_msg_label.grid(column=0, row=5)
 
 #Create a button to send data on selected port
-send_button = Button(window, text = "send")
+send_button = Button(window, text="send", command = send_button_pressed)
 #Sets its position
-send_button.grid(column = 2, row = 5)
+send_button.grid(column=2, row=5)
 
 #Create a scroll text box for the terminal
-terminal_box = scrolledtext.ScrolledText(window,width=17,height=10)
+terminal_box = scrolledtext.ScrolledText(window, width=20, height=10)
 #Set its position
-terminal_box.grid(column = 1, row = 3)
+terminal_box.grid(column=1, row=3)
 
 #Create a label for terminal
-terminal_label = Label(window, text = "Terminal")
+terminal_label = Label(window, text="Terminal")
 #Set its position on it
-terminal_label.grid(column = 1, row = 1)
+terminal_label.grid(column=1, row=1)
 ################################################
 
 window.mainloop()
-#Poll echo check box to check if echo of sent message in terminal is required or not
-echo_flag = echo_checkbox.state
-
-
-
-
