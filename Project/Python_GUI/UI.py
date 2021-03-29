@@ -13,12 +13,73 @@ window.geometry('550x300')
 window.title("Shawn's Serial Terminal")
 
 # Variable Definitions
-# com_port_given = 0  # Holds com port value given
-transmit_msg = 0  # Data to transmit given by user
+#transmit_msg = 0  # Data to transmit given by user
 echo_flag = tkinter.BooleanVar()  # Checks if echo checkbox is set/cleared
-serial_port = 0 # Will hold opened serial port handle
 
-#######UI EVENT TRIGGERED FUNCTIONS#######
+serial_buffer_size = 12 # Transmit/Receive buffer size
+
+########## CRC FUNCTIONS ################
+
+def crc16(data : bytearray, length):
+    if data is None or length <= 0:
+        return 0
+        
+    polynomial = 0x1021
+    crc = 0xFFFF
+
+    for i in range(0, length):
+
+        crc ^= data[i] << 8
+
+        for j in range(0,8):
+
+            if (crc & 0x8000) > 0:
+                crc =(crc << 1) ^ polynomial
+            else:
+                crc = crc << 1
+
+    return crc & 0xFFFF
+
+
+########## SERIAL PORT FUNCTIONS #########
+
+def serial_transmit(instruction):
+
+    #Create empty array of specified bytes
+    transmit_buffer = bytearray([0] *  serial_buffer_size)
+
+    #Fill instruction to byte 0
+    transmit_buffer[0] = instruction
+
+    #Transmit buffer has 2 segments. Byte 0 to Byte (serial_buffer_size - 2) is the message segment
+    #where data is stored. Last 2 bytes are reserved for the crc to be attended to.
+
+    #Calculate CRC for message segment.
+    crc = crc16(transmit_buffer, serial_buffer_size - 2)
+    print(crc)
+    #Append crc to transmit buffer
+    transmit_buffer[serial_buffer_size - 2] = (crc >> 8) & 0xff
+    transmit_buffer[serial_buffer_size - 1] = crc & 0xff
+
+    #Transmit
+    serial_port.write(transmit_buffer)
+
+    #If Echo is on, Print to serial
+    if echo_flag.get() == 1:
+        n = serial_buffer_size - 1
+        while n >= 0:
+            terminal_box.insert('1.0', " ")
+            terminal_box.insert('1.0', transmit_buffer[n])  
+            n = n - 1
+
+        terminal_box.insert('1.0', "Sent: ")
+
+
+    return
+
+########################################
+
+####### UI EVENT TRIGGERED FUNCTIONS #######
 # Define a function to list all com ports
 def list_com_button_pressed():
     # List all the available serial ports
@@ -35,6 +96,7 @@ def set_com_button_pressed():
 
     # Get COM port string from textbox
     com_port_given = com_port_textbox.get()
+
     # Check if string size is valid, else return error
     string_length = len(com_port_given)
 
@@ -54,7 +116,8 @@ def set_com_button_pressed():
     # Confirm the inputted port is valid by searching list of valid port names
     for n in com_ports_available:
         if com_port_given in n.description:
-            #Open selected com port with default parameters
+            #Open selected com port with default parameters. Returned port handle is set as global variable
+            global serial_port 
             serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
                                         bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE)
 
@@ -74,16 +137,19 @@ def set_com_button_pressed():
             set_com_button['state'] = 'disabled'
             com_port_textbox['state'] = 'disabled'
 
+            #Enable send button and send message textbox
+            send_button['state'] = 'active'
+            send_message_textbox['state'] = 'normal'
+
             return
     
     # Port name is not listed on available serial ports
     terminal_box.insert('1.0', "\nInvalid COM Port\n")
-    
+
     return
 
 # Define a function to set the message to send to a variable
 def send_button_pressed():
-    # Ensure COM port is set and open
 
     # Read message to transmit from textbox
     transmit_msg = send_message_textbox.get()
@@ -92,29 +158,30 @@ def send_button_pressed():
     if string_length == 0:
         terminal_box.insert('1.0', "\nNo TX Message Given\n")
         return
+    elif string_length > 3:
+        terminal_box.insert('1.0', "\nTX Message Exceeds Max Size\n")
+        return
 
     # Convert the transmit value from string to integer
     transmit_val = int(transmit_msg)
 
-    print(transmit_val)
     # Check if value exceeds 100
     if(transmit_val > 100):
-        terminal_box.insert('1.0', "TX Message Exceeds Max Value of 100\n")
+        terminal_box.insert('1.0', "\nTX Message Exceeds Max Value of 100\n")
         return
     elif(transmit_val < 0):
-        terminal_box.insert('1.0', "TX Message Cannot be Negative\n")
+        terminal_box.insert('1.0', "\nTX Message Cannot be Negative\n")
         return
 
     # Call serial transmit function
-
-    # print data sent if successful
+    serial_transmit(transmit_val)
 
     return
 
 ###########################################
 
 
-########## INIT UI OBJECTS ########################
+########## INITIALISE UI OBJECTS ########################
 
 # Create a label for com port to be placed near text box
 com_port_label = Label(window, text="COM PORT")
@@ -146,7 +213,7 @@ echo_checkbox = Checkbutton(window, text="Enable Echo", variable=echo_flag)
 echo_checkbox.grid(column=3, row=3)
 
 # Create a text box to get the transmit message from user
-send_message_textbox = Entry(window, width=3)
+send_message_textbox = Entry(window, width=3, state = 'disabled')
 # Set its position
 send_message_textbox.grid(column=1, row=5)
 
@@ -156,7 +223,7 @@ tx_msg_label = Label(window, text="TX MSG")
 tx_msg_label.grid(column=0, row=5)
 
 # Create a button to send data on selected port
-send_button = Button(window, text="send", command=send_button_pressed)
+send_button = Button(window, text="send", command=send_button_pressed, state = 'disabled')
 # Sets its position
 send_button.grid(column=2, row=5)
 
