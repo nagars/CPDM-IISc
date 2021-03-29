@@ -6,7 +6,7 @@ import serial.tools.list_ports as port_list     #Import function to list serial 
 #Generate window
 window = Tk()
 #Define window size
-window.geometry('375x250')
+window.geometry('550x300')
 #Set title for window
 window.title("Shawn's Serial Terminal")
 
@@ -16,6 +16,16 @@ transmit_msg = 0  # Data to transmit given by user
 echo_flag = tkinter.BooleanVar()  # Checks if echo checkbox is set/cleared
 
 #######UI EVENT TRIGGERED FUNCTIONS#######
+#Define a function to list all com ports
+def list_com_button_pressed():
+    ports = list(port_list.comports())
+    for n in ports:
+        terminal_box.insert('1.0','\n')
+        terminal_box.insert('1.0', n)
+        terminal_box.insert('1.0','\n')
+    
+    return
+
 #Define a function to set the com port text to a variable
 def set_com_button_pressed():
     #Get COM port string from textbox
@@ -24,11 +34,11 @@ def set_com_button_pressed():
     string_length = len(com_port)
 
     if string_length == 0:
-        terminal_box.insert('1.0', "No COM Port Set\n")
+        terminal_box.insert('1.0', "\nNo COM Port Set\n")
     elif string_length < 4:
-        terminal_box.insert('1.0', "Invalid COM Port\n")
+        terminal_box.insert('1.0', "\nInvalid COM Port\n")
     elif string_length > 5:
-        terminal_box.insert('1.0', "Invalid COM Port\n")
+        terminal_box.insert('1.0', "\nInvalid COM Port\n")
     else:
         #Open selected com port
 
@@ -45,7 +55,7 @@ def send_button_pressed():
     #Check if string size is valid, else print error and return
     string_length = len(transmit_msg)
     if string_length == 0:
-        terminal_box.insert('1.0', "No TX Message Given\n")
+        terminal_box.insert('1.0', "\nNo TX Message Given\n")
         return
 
     #Convert the transmit value from string to integer
@@ -70,6 +80,7 @@ def send_button_pressed():
 
 
 ########## INIT UI OBJECTS ########################
+
 #Create a label for com port to be placed near text box
 com_port_label = Label(window, text="COM PORT")
 #Set its position in top left corner
@@ -85,12 +96,17 @@ com_port_textbox.focus()
 #Create a button to send data on selected port
 set_com_button = Button(window, text="Set COM", command=set_com_button_pressed)
 #Sets its position
-set_com_button.grid(column=3, row=0)
+set_com_button.grid(column=3, row=2)
+
+#Create a button to list com ports
+list_com_button = Button(window, text="List COM Ports", command=list_com_button_pressed)
+#Sets its position
+list_com_button.grid(column=3, row=1)
 
 #Create a checkbox to register if the user wants the sent data to be echoed in terminal
 echo_checkbox = Checkbutton(window, text="Enable Echo", variable=echo_flag)
 #Set position
-echo_checkbox.grid(column=3, row=1)
+echo_checkbox.grid(column=3, row=3)
 
 #Create a text box to get the transmit message from user
 send_message_textbox = Entry(window, width=3)
@@ -108,7 +124,7 @@ send_button = Button(window, text="send", command = send_button_pressed)
 send_button.grid(column=2, row=5)
 
 #Create a scroll text box for the terminal
-terminal_box = scrolledtext.ScrolledText(window, width=20, height=10)
+terminal_box = scrolledtext.ScrolledText(window, width=40, height=10)
 #Set its position
 terminal_box.grid(column=1, row=3)
 
