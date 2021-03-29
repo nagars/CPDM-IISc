@@ -22,7 +22,7 @@ nack = 56 # Not-Acknowledge value returned by stm
 ########## CRC FUNCTIONS ################
 
 def crc16(data : bytearray, length):
-    if data == 0 or length <= 0:
+    if len(data) == 0 or length <= 0:
         return 
         
     polynomial = 0x1021
@@ -86,7 +86,7 @@ def wait_for_ack():
     #Create empty array of specified bytes
     receive_buffer = bytearray([0] * serial_buffer_size)
     
-    #Read 12 bytes of data on serial line
+    #Read 12 bytes of data on serial line (Blocking)
     #Time out set at 2 sec at initialisation of COM port
     receive_buffer = serial_port.read(serial_buffer_size)
 
