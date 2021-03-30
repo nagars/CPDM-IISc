@@ -52,17 +52,13 @@ void serial_transmit(const uint8_t* msg, uint8_t msg_size){
 		transmit_buffer[n] = 0;
 	}
 
-	//Ensures msg size fits within uart buffer after appending of crc and \n
-	if(msg_size > UART_BUFFER_SIZE - 3){
-		//Copy enough of msg to fit in buffer and leave last 3 bytes. Ignore the rest
-		memcpy(transmit_buffer, msg, UART_BUFFER_SIZE - 3);
-		//Append line terminator before crc
-		transmit_buffer[UART_BUFFER_SIZE - 3] = '\n';
+	//Ensures msg size fits within uart buffer after appending of crc
+	if(msg_size > UART_BUFFER_SIZE - 2){
+		//Copy enough of msg to fit in buffer and leave last 2 bytes. Ignore the rest
+		memcpy(transmit_buffer, msg, UART_BUFFER_SIZE - 2);
 	}else{
 		//Copy entire msg
 		memcpy(transmit_buffer, msg, msg_size);
-		//Append line terminator after message
-		transmit_buffer[msg_size] = '\n';
 	}
 
 
