@@ -1,8 +1,9 @@
+import tkinter  # Import function to list serial ports. Re-defined as port_list
 from tkinter import *  # Import tkiner library used to generate GUI
 from tkinter import scrolledtext  # Import library for scroll text box
-import tkinter  # Import function to list serial ports. Re-defined as port_list
 import serial.tools.list_ports as port_list
 import serial
+from serial import SerialException
 import time
 
 # Generate window
@@ -66,7 +67,7 @@ def serial_transmit(instruction):
 
     #Wait for acknowledge/not-acknowledge
     status = wait_for_ack()
-
+    status = 1
     #If ack, print data to serial if necessary, else re-transmit instruction
     if status == True:
         terminal_box.insert('1.0', "\nTransmit instruction succeeded: Acknowledge returned\n")
@@ -84,19 +85,24 @@ def serial_transmit(instruction):
 
 def wait_for_ack():
     #Create empty array of specified bytes
-    receive_buffer = bytearray([0] * serial_buffer_size)
+    receive_buffer = ([0] * serial_buffer_size)
     
     #Read 12 bytes of data on serial line (Blocking)
     #Time out set at 2 sec at initialisation of COM port
-    receive_buffer = serial_port.read(serial_buffer_size)
+    #receive_buffer = serial_port.readline()
+    receive_buffer = serial_port.read(12)
+    # n = 0
+    # while n < serial_buffer_size:
+    #     receive_buffer[n] = serial_port.read(1)
+    #     n = n + 1
 
     #Check if timeout occurred. timeout does not throw an exception
     #Hence I just check if size of receive buffer is 0
     timeout_occurred = len(receive_buffer)
     
     #if data was read, timeout_occurred should be non-zero
-    if timeout_occurred == 0:
-        terminal_box.insert('1.0', "\nTransmit instruction failed: Read timeout occurred. No data returned. Re-attempting\n")
+    if timeout_occurred == 1:
+        terminal_box.insert('1.0', "\nTransmit instruction failed: Read timeout occurred. No data returned.\n")
         return False
 
     #Data received. Check data integrity. Returns 0 if valid
@@ -160,15 +166,14 @@ def set_com_button_pressed():
         if com_port_given in n.description:
             #Open selected com port with default parameters. Returned port handle is set as global variable
             global serial_port 
-            serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
-                                        bytesize = 8, timeout = 1, stopbits=serial.STOPBITS_ONE)
-
+            try: serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
+                                        bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE)
             #Check if COM port failed to open. Print error message
-            if serial_port.isOpen() == 0:
+            except SerialException:
                 terminal_box.insert('1.0', " is busy. Unable to open\n")
                 terminal_box.insert('1.0', com_port_given)
                 terminal_box.insert('1.0', "\n")
-                return
+                return    
 
             #Print COM port opened successfully.
             terminal_box.insert('1.0', " opened successfully\n")
