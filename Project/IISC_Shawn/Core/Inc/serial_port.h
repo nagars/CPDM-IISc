@@ -19,6 +19,7 @@
  * 7, Serial port can only initialise 1 uart port as the uart buffer is a global buffer
  * 8, Allows for user to assign serial port buffer
  * 9, Baud rate cannot be changed on the fly
+ * 10, Sends a '\n' at end of message before crc segment
  */
 
 /*Serial Port Buffer*/
@@ -28,7 +29,7 @@
 
 /*UART Buffer*/
 #ifndef UART_BUFFER_SIZE
-	#define UART_BUFFER_SIZE 10
+	#define UART_BUFFER_SIZE 12
 #endif
 
 /**

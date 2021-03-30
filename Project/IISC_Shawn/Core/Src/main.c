@@ -125,11 +125,11 @@ int main(void)
 
 /******FOR TESTING******/
 	//Basic test to see if crc is working
-	uint8_t data_r[15] = {0};		//data received by system
-	uint8_t data_s[15] = {0};	//data to be sent
-	data_s[0] = 1;
-
-	serial_transmit(data_s,1);
+//	uint8_t data_r[15] = {0};		//data received by system
+//	uint8_t data_s[15] = {0};	//data to be sent
+//	data_s[0] = 1;
+//
+//	serial_transmit(data_s,1);
 /**********************/
 
   /* USER CODE END 2 */

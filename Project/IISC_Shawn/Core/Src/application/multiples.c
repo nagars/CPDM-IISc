@@ -1,7 +1,7 @@
 #include "multiples.h"
 #include <string.h>
 
-void check_multiples(const uint8_t val, unsigned char* msg){
+uint8_t check_multiples(const uint8_t val, unsigned char* msg){
 
 	//init variable to hold code indicating if val is a multiple of 4,7,both or neither
 	uint8_t multiple_code = 0;
@@ -30,7 +30,7 @@ void check_multiples(const uint8_t val, unsigned char* msg){
 		break;
 	}
 
-	return;
+	return strlen(msg);
 }
 
 bool check_multiple_of_4(uint8_t val){

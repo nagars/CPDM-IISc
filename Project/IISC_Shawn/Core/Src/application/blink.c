@@ -36,10 +36,10 @@ void begin_new_operation(void){
 	}
 
 	//check for 4 and 7
-	check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
+	uint8_t msg_len = check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 	//Transmit msg
-	serial_transmit(msg, MSG_SIZE);
+	serial_transmit(msg, msg_len);
 
 	return;
 }

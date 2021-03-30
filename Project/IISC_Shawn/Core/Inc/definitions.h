@@ -28,7 +28,7 @@
 #define CRC_SEED 0xffff
 
 /*Messgae to transmit size*/
-#define MSG_SIZE 10
+#define MSG_SIZE 9
 
 /*********Type definitions******/
 /*Buffer Struct*/

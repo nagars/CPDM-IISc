@@ -22,9 +22,9 @@
  * @parm const uint8_t : data value to check
  * @param unsigned char* : Pointer to character buffer to store response message
  *
- * @return void
+ * @return uint8_t : size of msg
  */
-void check_multiples(const uint8_t, unsigned char*);
+uint8_t check_multiples(const uint8_t, unsigned char*);
 
 /**
  * @brief Description: Checks if the given value is a multiple of 4
