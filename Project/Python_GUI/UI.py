@@ -67,7 +67,7 @@ def serial_transmit(instruction):
 
     #Wait for acknowledge/not-acknowledge
     status = wait_for_ack()
-    status = 1
+
     #If ack, print data to serial if necessary, else re-transmit instruction
     if status == True:
         terminal_box.insert('1.0', "\nTransmit instruction succeeded: Acknowledge returned\n")
@@ -84,17 +84,10 @@ def serial_transmit(instruction):
     return
 
 def wait_for_ack():
-    #Create empty array of specified bytes
-    receive_buffer = ([0] * serial_buffer_size)
     
     #Read 12 bytes of data on serial line (Blocking)
     #Time out set at 2 sec at initialisation of COM port
-    #receive_buffer = serial_port.readline()
     receive_buffer = serial_port.read(12)
-    # n = 0
-    # while n < serial_buffer_size:
-    #     receive_buffer[n] = serial_port.read(1)
-    #     n = n + 1
 
     #Check if timeout occurred. timeout does not throw an exception
     #Hence I just check if size of receive buffer is 0
@@ -167,7 +160,7 @@ def set_com_button_pressed():
             #Open selected com port with default parameters. Returned port handle is set as global variable
             global serial_port 
             try: serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
-                                        bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE)
+                                        bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE, parity = serial.PARITY_NONE)
             #Check if COM port failed to open. Print error message
             except SerialException:
                 terminal_box.insert('1.0', " is busy. Unable to open\n")
