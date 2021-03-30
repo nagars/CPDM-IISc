@@ -1,40 +1,77 @@
-import tkinter   # Import tkinter library used to generate GUI
-from tkinter import *  # Import tkinter modules used to generate GUI
-from tkinter import scrolledtext  # Import library for scroll text box
-import serial.tools.list_ports as port_list # Import function to list serial ports. Re-defined as port_list
-import serial   #Import pyserial library
-from serial import SerialException  # Import pyserial exception handling
-#import bg_run   #To run different threads in background
-import threading
+"""
+Feature List:
+1, Generates GUI serial terminal
+2, Prevents user from typing and sending messages
+    unless COM port has been opened successfully
+3, User can input COM port
+4, Checks if given COM port is valid and opens serial
+5, Throws error if unable to upon serial to COM port
+6, Allows user to list all available COM ports
+7, Disabled COM port button and textbox once serial opened
+8, If COM port is opened/failed to open, displays message in terminal
+9, Enables send button and textbox once COM port is opened
+10, Checks if data in textbox to send is valid
+11, Creates transmit buffer with data given by user
+12, Generates CRC16 for transmit buffer
+13, Transmit buffer on serial port
+14, Once transmit, waits for acknowledge message from target for 200ms
+15, If no ack / if nack comes, print error message on terminal
+16, If Echo checkbox is checked, prints transmitted message on 
+    terminal once ack returned
+17, Generates thread to poll serial constantly
+18, Checks data integrity using CRC16. Prints message to terminal if failed.
+19, If valid, prints received data to terminal
+20, Terminal box auto scrolls upwards
+"""
 
-# Generate window
+import tkinter                       # Import tkinter library used to generate GUI
+from tkinter import *                # Import tkinter modules used to generate GUI
+from tkinter import scrolledtext     # Import tkinter library for scroll text box
+
+import serial.tools.list_ports as port_list # Import function to list serial ports.
+import serial                       # Import pyserial library
+from serial import SerialException  # Import pyserial exception handling
+
+import threading                    # Import threading library to run parallel threads
+import time                         # For accessing system time
+
+# Generate GUI window
 window = Tk()
 # Define window size
-window.geometry('550x300')
+window.geometry('600x500')
 # Set title for window
 window.title("Shawn's Serial Terminal")
 
 # Variable Definitions
-#transmit_msg = 0  # Data to transmit given by user
-echo_flag = tkinter.BooleanVar()  # Checks if echo checkbox is set/cleared
-serial_buffer_size = 12 # Transmit/Receive buffer size
-ack = 55 # Acknowledge value returned by stm
-nack = 56 # Not-Acknowledge value returned by stm
+echo_flag = tkinter.BooleanVar()    # Checks if echo checkbox is set/cleared
+serial_buffer_size = 12             # Transmit/Receive buffer size
+ack = 150                           # Acknowledge value returned by stm
+nack = 155                          # Not-Acknowledge value returned by stm
+ack_received = 0                    # Stores if ack was received on transmission or not
 
 ########## CRC FUNCTIONS ################
+def crc16(data: bytearray, length):
+    """
+    Description: Performs a crc16 algorithm on given array of
+    data for provided number of bytes. Used both for
+    generation of crc16 for transmit message and checking of
+    data integrity on receive message
+    """
 
-def crc16(data : bytearray, length):
+    #Check inputs are valid
     if len(data) == 0 or length <= 0:
         return
-        
+
+    #Set Polynomial and seed
     polynomial = 0x1021
     crc = 0xFFFF
 
+    #Calculate crc
     for i in range(0, length):
         crc ^= data[i] << 8
-        for j in range(0,8):
+        for j in range(0, 8):
             if (crc & 0x8000) > 0:
-                crc =(crc << 1) ^ polynomial
+                crc = (crc << 1) ^ polynomial
             else:
                 crc = crc << 1
 
@@ -42,43 +79,59 @@ def crc16(data : bytearray, length):
 
 
 ########## SERIAL PORT FUNCTIONS #########
-
 def serial_read():
+    """
+    Description: Forever polls the serial terminal for incoming data.
+    A successful read has a length of 12 bytes and passes crc16 check.
+    Sets/Clears a global acknowledge receive flag if data received is
+    an ack/nack message.
+    Prints receive message to terminal if valid.
+    """
+
+    global ack_received
 
     while 1:
         #Read 12 bytes of data on serial line (Blocking)
         #Time out set at 2 sec at initialisation of COM port
         receive_buffer = serial_port.read(12)
 
-        #Check if timeout occurred. timeout does not throw an exception
-        #Hence I just check if size of receive buffer is 1 byte
-        timeout_occurred = len(receive_buffer)
-    
-        #if data was read, timeout_occurred should be greater than 1
-        if timeout_occurred == 1:
-            return False
-
         #Data received. Check data integrity. Returns 0 if valid
         data_valid = crc16(receive_buffer, serial_buffer_size)
 
         #Check if data is valid. 0 if valid
         if data_valid == 0:
-            #Print to terminal
-            n = serial_buffer_size - 1
-            terminal_box.insert('1.0', "\n")
-            while n >= 0:
-                terminal_box.insert('1.0', " ")
-                terminal_box.insert('1.0', receive_buffer[n])  
-                n = n - 1
+            #Check if ack received and set flag
+            if receive_buffer[0] == ack:
+                ack_received = 1
+            elif receive_buffer[0] == nack:
+                ack_received = 0
+            else:
+                #Print to terminal
+                n = serial_buffer_size - 1
+                terminal_box.insert('1.0', "\n")
+                while n >= 0:
+                    terminal_box.insert('1.0', " ")
+                    terminal_box.insert('1.0', receive_buffer[n])
+                    n = n - 1
 
-            terminal_box.insert('1.0', "Received: ")
-        
+                terminal_box.insert('1.0', "Received: ")
+
     return
 
+
 def serial_transmit(instruction):
+    """
+    Description: Transmit instruction to target device on
+    serial terminal. Fills first byte of transmit buffer 
+    with instruction, generates crc16 and appends it to alst
+    2 bytes of transmit buffer before sending.
+    Waits for a specified amount of time for an acknowledge message
+    to be returned from target. Prints transmitted buffer to terminal
+    if ack returned, else prints error message.
+    """
 
     #Create empty array of specified bytes
-    transmit_buffer = bytearray([0] *  serial_buffer_size)
+    transmit_buffer = bytearray([0] * serial_buffer_size)
 
     #Fill instruction to byte 0
     transmit_buffer[0] = instruction
@@ -95,70 +148,61 @@ def serial_transmit(instruction):
     #Transmit
     serial_port.write(transmit_buffer)
 
+    #reset ack_received variable
+    ack_received = 0
     #Wait for acknowledge/not-acknowledge
-    #status = wait_for_ack()
-    status = True
+    status = wait_for_ack()
+
     #If ack, print data to serial if necessary, else re-transmit instruction
     if status == True:
-        terminal_box.insert('1.0', "\nTransmit instruction succeeded: Acknowledge returned\n")
-        #If Echo is on, Print data sent to serial 
+        #If Echo is on, Print data sent to serial
         if echo_flag.get() == 1:
             n = serial_buffer_size - 1
             terminal_box.insert('1.0', "\n")
             while n >= 0:
                 terminal_box.insert('1.0', " ")
-                terminal_box.insert('1.0', transmit_buffer[n])  
+                terminal_box.insert('1.0', transmit_buffer[n])
                 n = n - 1
 
-            terminal_box.insert('1.0', "Sent: ")
-    
+            terminal_box.insert('1.0', "Sent:     ")
+    else:
+        #Print error message
+        terminal_box.insert(
+            '1.0', "\nTransmit instruction failed: Not acknowledge returned. Target busy?\n")
     return
 
+
 def wait_for_ack():
-    
-    #Read 12 bytes of data on serial line (Blocking)
-    #Time out set at 2 sec at initialisation of COM port
-    receive_buffer = serial_port.read(12)
+    """
+    Description: Waits for acknowledge_received flag to be set
+    for 200s. Uses system time to track when time has expired. Returns 
+    True if flag is set by serial_receive() while waiting
+    """
 
-    #Check if timeout occurred. timeout does not throw an exception
-    #Hence I just check if size of receive buffer is 1 byte
-    timeout_occurred = len(receive_buffer)
-    
-    #if data was read, timeout_occurred should be larger than 1
-    if timeout_occurred == 1:
-        terminal_box.insert('1.0', "\nTransmit instruction failed: Read timeout occurred. No data returned.\n")
-        return False
+    #Set current system time in variable
+    start_time = time.time()
 
-    #Data received. Check data integrity. Returns 0 if valid
-    data_valid = crc16(receive_buffer, serial_buffer_size)
-
-    #if data is valid, check if data is ack
-    #if data invalid or nack received, re-transmit instruction
-    if data_valid == 0:     #valid
-        if receive_buffer[0] == ack:
+    #Wait for an ack to be received for 200ms
+    while round(time.time() - start_time) <= 0.2:
+        if ack_received == 1:
             return True
-        elif receive_buffer[0] == nack:
-            terminal_box.insert('1.0', "\nTransmit instruction failed: Not acknowledge returned. Target maybe busy or data corruption occurred. Re-attempting\n")
-            return False
-    else:
-        terminal_box.insert('1.0', "\nTransmit instruction failed: Invalid data returned. Possible data corruption. Re-attempting\n")
-        return False
 
-########################################
+    return False
 
-########### INITIALISE MULTI_THREAD#####
 
+####### INITIALISE MULTI_THREAD #####
 #Set multi-threading serial read
 #Generate thread
 read_thread = threading.Thread(target=serial_read)
 #Will allow for this thread to be closed on end of main program
 read_thread.daemon = True
 
-##########################################
-
 ####### UI EVENT TRIGGERED FUNCTIONS #######
-# Define a function to list all com ports
 def list_com_button_pressed():
+    """Description: Prints a list of available serial COM ports
+    on to terminal.
+    """
+
     # List all the available serial ports
     com_ports_available = list(port_list.comports())
     for n in com_ports_available:
@@ -168,8 +212,17 @@ def list_com_button_pressed():
 
     return
 
-# Define a function to set the com port text to a variable
+
 def set_com_button_pressed():
+    """
+    Description: This function checks if the
+    com port given by the user in the textbox is a valid
+    name. It confirms if the port is available and opens it.
+    Prints error and success messages. Disabled buttons
+    and textbox related to com port settings once serial is
+    opened. Starts a new thread to poll the serial line for incoming
+    data.
+    """
 
     # Get COM port string from textbox
     com_port_given = com_port_textbox.get()
@@ -186,7 +239,7 @@ def set_com_button_pressed():
     elif string_length > 5:
         terminal_box.insert('1.0', "\nInvalid COM Port\n")
         return
-    
+
     # Lists all available serial ports
     com_ports_available = list(port_list.comports())
 
@@ -194,15 +247,16 @@ def set_com_button_pressed():
     for n in com_ports_available:
         if com_port_given in n.description:
             #Open selected com port with default parameters. Returned port handle is set as global variable
-            global serial_port 
-            try: serial_port = serial.Serial(port = com_port_given, baudrate = 9600, 
-                                        bytesize = 8, timeout = 2, stopbits=serial.STOPBITS_ONE, parity = serial.PARITY_NONE)
+            global serial_port
+            try:
+                serial_port = serial.Serial(port=com_port_given, baudrate=9600,
+                                            bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE, parity=serial.PARITY_NONE)
             #Check if COM port failed to open. Print error message
             except SerialException:
                 terminal_box.insert('1.0', " is busy. Unable to open\n")
                 terminal_box.insert('1.0', com_port_given)
                 terminal_box.insert('1.0', "\n")
-                return    
+                return
 
             #Print COM port opened successfully.
             terminal_box.insert('1.0', " opened successfully\n")
@@ -222,14 +276,18 @@ def set_com_button_pressed():
             read_thread.start()
 
             return
-    
+
     # Port name is not listed on available serial ports
     terminal_box.insert('1.0', "\nInvalid COM Port\n")
 
     return
 
-# Define a function to set the message to send to a variable
+
 def send_button_pressed():
+    """Description: Accepts the data to transmit
+    from textbox. Checks if value is valid. calls serial_transmit
+    to prepare transmit buffer and send on serial.
+    """
 
     # Read message to transmit from textbox
     transmit_msg = send_message_textbox.get()
@@ -258,11 +316,8 @@ def send_button_pressed():
 
     return
 
-###########################################
-
 
 ########## INITIALISE UI OBJECTS ########################
-
 # Create a label for com port to be placed near text box
 com_port_label = Label(window, text="COM PORT")
 # Set its position in top left corner
@@ -293,7 +348,7 @@ echo_checkbox = Checkbutton(window, text="Enable Echo", variable=echo_flag)
 echo_checkbox.grid(column=3, row=3)
 
 # Create a text box to get the transmit message from user
-send_message_textbox = Entry(window, width=3, state = 'disabled')
+send_message_textbox = Entry(window, width=3, state='disabled')
 # Set its position
 send_message_textbox.grid(column=1, row=5)
 
@@ -303,12 +358,13 @@ tx_msg_label = Label(window, text="TX MSG")
 tx_msg_label.grid(column=0, row=5)
 
 # Create a button to send data on selected port
-send_button = Button(window, text="send", command=send_button_pressed, state = 'disabled')
+send_button = Button(window, text="send",
+                     command=send_button_pressed, state='disabled')
 # Sets its position
 send_button.grid(column=2, row=5)
 
 # Create a scroll text box for the terminal
-terminal_box = scrolledtext.ScrolledText(window, width=40, height=10)
+terminal_box = scrolledtext.ScrolledText(window, width=47, height=20)
 # Set its position
 terminal_box.grid(column=1, row=3)
 
@@ -318,5 +374,5 @@ terminal_label = Label(window, text="Terminal")
 terminal_label.grid(column=1, row=1)
 ################################################
 
-
+#Main loop
 window.mainloop()
