@@ -31,16 +31,16 @@ uint8_t check_multiples(const uint8_t, unsigned char*);
  *
  * @parm uint8_t : Data to check
  *
- * @return void
+ * @return bool : 1 if number is a multiple, else 0
  */
 bool check_multiple_of_4(uint8_t);
 
 /**
- * @brief Description: Checks if the given value is a multiple of 4
+ * @brief Description: Checks if the given value is a multiple of 7
  *
  * @parm int8_t : Data to check
  *
- * @return void
+ * @return bool : 1 if number is a multiple, else 0
  */
 bool check_multiple_of_7(int8_t);
 

@@ -5,7 +5,7 @@
 
 /**
  * @file timer.h
- * @brief This driver implements timer functions used for the PWM, Led Blinking
+ * @brief This driver implements timer functions used by the PWM, Led Blinking
  * and time keeping
  *
  * @par Feature List:
@@ -56,7 +56,7 @@ void disable_pwm(TIM_HandleTypeDef*, uint32_t);
 /**
  * @brief Description: sets pwm duty cycle
  *
- * @param TIM_HandleTypeDef* : Timer module handle
+ * @param TIM_HandleTypeDef* : PWM Timer module handle
  * @param uint8_t : Duty cycle to set
  *
  * @return void

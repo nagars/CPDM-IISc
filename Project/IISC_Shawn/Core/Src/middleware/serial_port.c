@@ -33,12 +33,7 @@ void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_han
 			dma_transfer_failure_cb);
 
 	//Enable UART receive interrupts
-	if(HAL_UART_Receive_IT(_uart_handle, receive_buffer, UART_BUFFER_SIZE) != HAL_OK){
-
-		//Reset UART RX error state and re-attempt
-		//_uart_handle->RxState = HAL_UART_STATE_READY;
-		//HAL_UART_Receive_IT(_uart_handle, receive_buffer, UART_BUFFER_SIZE);
-	}
+	HAL_UART_Receive_IT(_uart_handle, receive_buffer, UART_BUFFER_SIZE);
 
 	return;
 }
@@ -61,26 +56,20 @@ void serial_transmit(const uint8_t* msg, uint8_t msg_size){
 		memcpy(transmit_buffer, msg, msg_size);
 	}
 
-
-
 	//Generate crc16 encoded transmit message.
 	generate_crc16_msg(crc16_ccitt_table, transmit_buffer, UART_BUFFER_SIZE);
 
 	//Transmit message
-	if(HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE) != HAL_OK){
-
-		//If failed, Reset uart error state and re-attempt
-		//p_uart_handle->gState = HAL_UART_STATE_READY;
-		//HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE);
-
-	}
+	HAL_UART_Transmit_IT(p_uart_handle, transmit_buffer, UART_BUFFER_SIZE);
 
 	return;
 }
 
+
+/****HAL UART Callback Functions****/
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 
-	//check which uart handle triggered callback
+	//check which uart handle that triggered callback is assigned to serial_port
 	if(_uart_handle == p_uart_handle){
 
 		//If crc failed, transmit NACK else, transmit ACK & Trigger DMA transfer
@@ -92,52 +81,100 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 			uint8_t send_nack = NACK;
 			serial_transmit(&send_nack, 1);
 
-		}else{
+		}else{	//crc check passed. data is valid
 
 			//Trigger DMA transfer of valid data to serial buffer.
 			//Instruction from pc is only 1 bytes, hence 1 byte transferred
-			//Return not acknowledge if DMA fails
+			//Return not acknowledge if DMA fails, else return acknowledge
 			if(HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
 				(uint32_t)(p_serial_buffer->buffer + p_serial_buffer->write_index), 1) != HAL_OK){
 
 				//Transmit Not-Acknowledged
 				uint8_t send_nack = NACK;
 				serial_transmit(&send_nack, 1);
+
+			}else{
+			//Transmit Acknowledged
+			uint8_t send_ack = ACK;
+			serial_transmit(&send_ack, 1);
+
 			}
 
 		}
 
-		return;
 	}
+
+	return;
 
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef* _uart_handle){
 
-	//check which uart handle triggered callback
+	//check which uart handle that triggered callback is assigned to serial_port
 	if(_uart_handle == p_uart_handle){
-		//Enable UART receive interrupts
-		if(HAL_UART_Receive_IT(p_uart_handle, receive_buffer, UART_BUFFER_SIZE) != HAL_OK){
 
-			//If failed, reset UART RX error state and re-attempt
-			//_uart_handle->RxState = HAL_UART_STATE_READY;
-			//HAL_UART_Receive_IT(p_uart_handle, receive_buffer, UART_BUFFER_SIZE);
-		}
+		//Enable UART receive interrupts
+		HAL_UART_Receive_IT(_uart_handle, receive_buffer, UART_BUFFER_SIZE);
 	}
 
 }
 
 void HAL_UART_ErrorCallback(UART_HandleTypeDef* _uart_handle){
 
-	//check which uart handle triggered callback
+	//check which uart handle that triggered callback is assigned to serial_port
 	if(_uart_handle == p_uart_handle){
-		//If UART receive/transmit error occurs, reset state
+
+		//If UART receive/transmit error occurs, reset state of UART
 		_uart_handle->RxState = HAL_UART_STATE_READY;
 		_uart_handle->gState = HAL_UART_STATE_READY;
 
 		//Transmit Not-Acknowledged
 		uint8_t send_nack = NACK;
 		serial_transmit(&send_nack, 1);
+
+		//Set UART in interrupt receive mode again
+		HAL_UART_Receive_IT(_uart_handle, receive_buffer, UART_BUFFER_SIZE);
 	}
 
+}
+
+
+/****User Defined DMA Callback Functions****/
+void dma_transfer_complete_cb(DMA_HandleTypeDef * _hdma){
+
+	//Check if DMA that triggered the callback is used by serial port
+	if(_hdma == p_dma_handle){
+
+		//Transmit Acknowledged
+		uint8_t send_ack = ACK;
+		HAL_UART_Transmit_IT(p_uart_handle, &send_ack, 1);
+
+		//Increment pending data counter of buffer
+		p_serial_buffer->num_pending++;
+
+		//Increment write index of serial buffer
+		p_serial_buffer->write_index++;
+
+		//Check if write_index is at end of buffer. Reset if yes.
+		if(p_serial_buffer->write_index >= SERIAL_BUFFER_SIZE){
+			p_serial_buffer->write_index = 0;
+		}
+
+	}
+
+	return;
+}
+
+void dma_transfer_failure_cb(DMA_HandleTypeDef * _hdma){
+
+	//Check if DMA that triggered the callback is used by serial port
+	if(_hdma == p_dma_handle){
+
+		//Transmit Not-Acknowledged
+		uint8_t send_nack = NACK;
+		HAL_UART_Transmit_IT(p_uart_handle, &send_nack, 1);
+
+	}
+
+	return;
 }

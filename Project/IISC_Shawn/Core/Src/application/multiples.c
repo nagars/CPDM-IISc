@@ -24,18 +24,17 @@ uint8_t check_multiples(const uint8_t val, unsigned char* msg){
 		memcpy(msg,"IISc", 4);
 		break;
 	case 0b11:
-		memcpy(msg,"CPDM IISc", 4);
+		memcpy(msg,"CPDM IISc", 9);
 		break;
 	default:
 		break;
 	}
 
+	//return length of response message
 	return strlen(msg);
 }
 
 bool check_multiple_of_4(uint8_t val){
-
-	/*https://www.geeksforgeeks.org/efficiently-check-whether-n-multiple-4-not/*/
 
 	//Last 2 bits of a number divisible by 4 are 0
 	if((val & 3) == 0){
@@ -46,9 +45,6 @@ bool check_multiple_of_4(uint8_t val){
 }
 
 bool check_multiple_of_7(int8_t val){
-
-	/*https://www.geeksforgeeks.org/divisibility-by-7/#:~:
-	text=Divisibility%20by%207%20can%20be,this%20until%20a%20small%20number.*/
 
 	if(val < 0){
 		val = -val;

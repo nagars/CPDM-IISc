@@ -10,7 +10,7 @@
  *
  * @par feature list:
  * 1, Encode a msg to transmit with a calculated crc
- * 2, Decode incoming data through crc algorithm
+ * 2, Decode incoming data through crc algorithm and lookup table
  * 3, Use polynomial value 0x1021 (x16 + x12 + x5 + 1)
  * 4, Return a status indicating if crc check was passed or not
  * 5, Use a pre-determined lookup table to improve crc calculation speed
@@ -62,7 +62,7 @@ void append_crc16(const uint16_t, uint8_t*, const uint8_t);
  *
  * @return uint16_t : crc calculated
  */
-uint16_t calculate_crc16(const int16_t* , const uint8_t*, uint8_t);
+uint16_t calculate_crc16(const int16_t*, const uint8_t*, uint8_t);
 
 /**
  * @brief Description: Checks if incoming message is valid using crc16

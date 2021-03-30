@@ -1,6 +1,8 @@
 #include "crc.h"
 
 //Calculated using 0x1021 as the polynomial (x16 + x12 + x5 + 1)
+//Taken from:
+//https://cs.fit.edu/code/svn/cse2410f13team7/wireshark/wsutil/crc16.c
 const int16_t crc16_ccitt_table[256] =
 {
  0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,
@@ -37,12 +39,11 @@ const int16_t crc16_ccitt_table[256] =
  0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0
 };
 
-
 void append_crc16(const uint16_t crc, uint8_t* data_array,
 					const uint8_t array_length){
 
 	//append crc to last 2 byts of data array
-	data_array[array_length - 2] = (uint8_t)(crc >> 8);	//casting uint16_t as uint8_t removed MSB
+	data_array[array_length - 2] = (uint8_t)(crc >> 8);	//casting uint16_t as uint8_t removes MSB
 	data_array[array_length - 1] = (uint8_t)crc;
 
 	return;
@@ -61,13 +62,12 @@ uint16_t calculate_crc16(const int16_t* crc_lookup_table, const uint8_t* data_ar
 	}
 
 	return crc;
-
 }
 
 void generate_crc16_msg(const int16_t* crc16_lookup_table, uint8_t* data_array,
 						const uint8_t array_length){
 
-	//16bits should already have been appended to data buffer
+	//16 0bits should already have been appended to end of data buffer
 
 	//encode crc
 	int16_t crc = calculate_crc16(crc16_lookup_table, data_array, array_length - 2);

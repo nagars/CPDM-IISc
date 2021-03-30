@@ -7,7 +7,8 @@
 
 /**
  * @file blink.h
- * @brief This driver implements functions for the blinking and response msg operations
+ * @brief This driver implements functions for the blinking and response msg to pc
+ * operations
  *
  * @par Feature List:
  * 1, Enables/Disables Timers

@@ -35,7 +35,7 @@ void begin_new_operation(void){
 		msg[n] = 0;
 	}
 
-	//check for 4 and 7
+	//check for 4 and 7 multiples
 	uint8_t msg_len = check_multiples(serial_buffer.buffer[serial_buffer.read_index], msg);
 
 	//Transmit msg

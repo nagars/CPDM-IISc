@@ -3,6 +3,7 @@
   ******************************************************************************
   * @file           : main.c
   * @brief          : Main program body
+  * @author			: Shawn Nagar
   ******************************************************************************
   * @attention
   *
@@ -55,7 +56,7 @@ RING_BUFFER serial_buffer;				//Struct containing indexes and buffer
 //Declare char array to store response to pc
 char msg[MSG_SIZE];
 
-//Operatin complete flag to track when operation of instruction is complete
+//Operation complete flag to track when operation of instruction is complete
 bool operation_complete_flag = true;
 
 /* USER CODE END PV */
@@ -112,25 +113,16 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  //Init serial_buffer variable
+  //Initialise serial_buffer variable
   serial_buffer.num_pending = 0;
   serial_buffer.write_index = 0;
   serial_buffer.read_index = 0;
 
-  //Init serial port
+  //Initialise serial port
   serial_port_init(&serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
 
   //Register timer elapsed callback
   register_timer_complete_callback(timer_elapsed_cb);
-
-/******FOR TESTING******/
-	//Basic test to see if crc is working
-//	uint8_t data_r[15] = {0};		//data received by system
-//	uint8_t data_s[15] = {0};	//data to be sent
-//	data_s[0] = 1;
-//
-//	serial_transmit(data_s,1);
-/**********************/
 
   /* USER CODE END 2 */
 
@@ -151,8 +143,8 @@ int main(void)
 		//If enabled, it means the timers are implementing instructions from the pc (blinking).
 		//If disabled, it means the led is not blinking and all timers are disabled.
 		//Required for initial bootup when timers are disabled as well as if there was
-		//a considerable delay of more than 10s between the first and second instruction.
-		//System is designed to go back to idle once an instruction is complete and nothing is pending.
+		//a considerable delay of more than 10s between the first and second instruction as
+		//system is designed to go back to idle once an instruction is complete and nothing is pending.
 		if((*(&htim14.Instance->CR1)&(0x01)) == false){
 
 			//Load pwm, calculate multiples and send response
@@ -161,9 +153,10 @@ int main(void)
 			//Start timers
 			enable_timers();
 
-		}else if(operation_complete_flag == true){ //check if previous operation has completed
+			//check if previous operation has completed
+		}else if(operation_complete_flag == true){
 
-			//Update buffer indexes
+			//If yes, Update buffer indexes
 			conclude_current_operation();
 
 			//Check if another data instruction is waiting in queue
