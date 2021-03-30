@@ -1,10 +1,11 @@
-import tkinter  # Import function to list serial ports. Re-defined as port_list
-from tkinter import *  # Import tkiner library used to generate GUI
+import tkinter   # Import tkinter library used to generate GUI
+from tkinter import *  # Import tkinter modules used to generate GUI
 from tkinter import scrolledtext  # Import library for scroll text box
-import serial.tools.list_ports as port_list
-import serial
-from serial import SerialException
-import time
+import serial.tools.list_ports as port_list # Import function to list serial ports. Re-defined as port_list
+import serial   #Import pyserial library
+from serial import SerialException  # Import pyserial exception handling
+#import bg_run   #To run different threads in background
+import threading
 
 # Generate window
 window = Tk()
@@ -24,17 +25,14 @@ nack = 56 # Not-Acknowledge value returned by stm
 
 def crc16(data : bytearray, length):
     if len(data) == 0 or length <= 0:
-        return 
+        return
         
     polynomial = 0x1021
     crc = 0xFFFF
 
     for i in range(0, length):
-
         crc ^= data[i] << 8
-
         for j in range(0,8):
-
             if (crc & 0x8000) > 0:
                 crc =(crc << 1) ^ polynomial
             else:
@@ -44,6 +42,38 @@ def crc16(data : bytearray, length):
 
 
 ########## SERIAL PORT FUNCTIONS #########
+
+def serial_read():
+
+    while 1:
+        #Read 12 bytes of data on serial line (Blocking)
+        #Time out set at 2 sec at initialisation of COM port
+        receive_buffer = serial_port.read(12)
+
+        #Check if timeout occurred. timeout does not throw an exception
+        #Hence I just check if size of receive buffer is 1 byte
+        timeout_occurred = len(receive_buffer)
+    
+        #if data was read, timeout_occurred should be greater than 1
+        if timeout_occurred == 1:
+            return False
+
+        #Data received. Check data integrity. Returns 0 if valid
+        data_valid = crc16(receive_buffer, serial_buffer_size)
+
+        #Check if data is valid. 0 if valid
+        if data_valid == 0:
+            #Print to terminal
+            n = serial_buffer_size - 1
+            terminal_box.insert('1.0', "\n")
+            while n >= 0:
+                terminal_box.insert('1.0', " ")
+                terminal_box.insert('1.0', receive_buffer[n])  
+                n = n - 1
+
+            terminal_box.insert('1.0', "Received: ")
+        
+    return
 
 def serial_transmit(instruction):
 
@@ -66,14 +96,15 @@ def serial_transmit(instruction):
     serial_port.write(transmit_buffer)
 
     #Wait for acknowledge/not-acknowledge
-    status = wait_for_ack()
-
+    #status = wait_for_ack()
+    status = True
     #If ack, print data to serial if necessary, else re-transmit instruction
     if status == True:
         terminal_box.insert('1.0', "\nTransmit instruction succeeded: Acknowledge returned\n")
         #If Echo is on, Print data sent to serial 
         if echo_flag.get() == 1:
             n = serial_buffer_size - 1
+            terminal_box.insert('1.0', "\n")
             while n >= 0:
                 terminal_box.insert('1.0', " ")
                 terminal_box.insert('1.0', transmit_buffer[n])  
@@ -90,10 +121,10 @@ def wait_for_ack():
     receive_buffer = serial_port.read(12)
 
     #Check if timeout occurred. timeout does not throw an exception
-    #Hence I just check if size of receive buffer is 0
+    #Hence I just check if size of receive buffer is 1 byte
     timeout_occurred = len(receive_buffer)
     
-    #if data was read, timeout_occurred should be non-zero
+    #if data was read, timeout_occurred should be larger than 1
     if timeout_occurred == 1:
         terminal_box.insert('1.0', "\nTransmit instruction failed: Read timeout occurred. No data returned.\n")
         return False
@@ -113,12 +144,17 @@ def wait_for_ack():
         terminal_box.insert('1.0', "\nTransmit instruction failed: Invalid data returned. Possible data corruption. Re-attempting\n")
         return False
 
-
-
-
-
-
 ########################################
+
+########### INITIALISE MULTI_THREAD#####
+
+#Set multi-threading serial read
+#Generate thread
+read_thread = threading.Thread(target=serial_read)
+#Will allow for this thread to be closed on end of main program
+read_thread.daemon = True
+
+##########################################
 
 ####### UI EVENT TRIGGERED FUNCTIONS #######
 # Define a function to list all com ports
@@ -180,6 +216,10 @@ def set_com_button_pressed():
             #Enable send button and send message textbox
             send_button['state'] = 'active'
             send_message_textbox['state'] = 'normal'
+
+            #Enable serial_read thread to poll serial line for receive message
+            #Starts thread
+            read_thread.start()
 
             return
     
@@ -277,5 +317,6 @@ terminal_label = Label(window, text="Terminal")
 # Set its position on it
 terminal_label.grid(column=1, row=1)
 ################################################
+
 
 window.mainloop()
