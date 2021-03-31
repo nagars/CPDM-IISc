@@ -21,7 +21,11 @@ A description of all that you need before actually running this project.
 
 #### Hardware Used
 
-    MCU: STM32F042K6 , Dev-Board: NUCLEO-F042K6 , USB-TTL Converter: Any generic one  
+    MCU: STM32F042K6 , Dev-Board: NUCLEO-F042K6 , USB-TTL Converter: Any generic one , LED - Any LED  with an inbuilt resistor. 
+Else an external 10K resistor will be required. 
+
+    The UART lines from the USB-TTL Converter are wired to UART1 on the STM. UART TX - PA_9, 
+UART RX - PA_10, LED ANODE - PA_6, LED CATHODE - GND
     
 #### Software Used
 
@@ -39,8 +43,9 @@ Flowcharts and an overview of the project can be found in the Documents folder.
 
 ## Known Issues
 
-- The buffer on the STM is designed for 10 instructions after which previous pending instructions will start getting overwritten. A check along with ready/busy status codes needs to be implemented
-- When sending the first instruction through the GUI, the python code sometimes misses the first acknowledge response from the STM. I have confirmed the STM always sends it. Unsure why this bug is occurring.
+- When sending the first instruction through the GUI resulting in an immediate return of the response message, the python code sometimes misses the first response from the STM. I have confirmed the STM always sends it immediately once the instruction is received. Unsure why this bug is occurring.
+Possible reason: The time between the serial_read thread can take control of the COM port after serial_transmit sends data maybe too long.
+
 
 ## References
 
