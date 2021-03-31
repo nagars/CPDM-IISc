@@ -113,11 +113,6 @@ int main(void)
   MX_TIM16_Init();
   /* USER CODE BEGIN 2 */
 
-  //Initialise serial_buffer variable
-  serial_buffer.num_pending = 0;
-  serial_buffer.write_index = 0;
-  serial_buffer.read_index = 0;
-
   //Initialise serial port
   serial_port_init(&serial_buffer, &huart1, &hdma_memtomem_dma1_channel1);
 

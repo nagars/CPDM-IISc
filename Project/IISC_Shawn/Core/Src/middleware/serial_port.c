@@ -28,6 +28,12 @@ void serial_port_init(RING_BUFFER* _serial_buffer, UART_HandleTypeDef* _uart_han
 	//Set global pointer to serial buffer
 	p_serial_buffer = _serial_buffer;
 
+	//Initialise serial_buffer variable
+	_serial_buffer->num_pending = 0;
+	_serial_buffer->write_index = 1;		//Should always be one ahead of read_index
+										//To avoid buffer overflow
+	_serial_buffer->read_index  = 0;
+
 	//Configure DMA callback functions
 	dma_register_callbacks(_dma_handle, dma_transfer_complete_cb,
 			dma_transfer_failure_cb);
@@ -81,24 +87,35 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef* _uart_handle){
 			uint8_t send_nack = NACK;
 			serial_transmit(&send_nack, 1);
 
-		}else{	//crc check passed. data is valid
+			return;
 
-			//Trigger DMA transfer of valid data to serial buffer.
-			//Instruction from pc is only 1 bytes, hence 1 byte transferred
-			//Return not acknowledge if DMA fails, else return acknowledge
-			if(HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
+		}
+
+		//crc check passed. data is valid
+
+		//Check if write buffer has caught up with read buffer
+		if(p_serial_buffer->write_index == p_serial_buffer->read_index){
+
+			//If true, ignore incoming instruction and return NACK to prevent buffer overwrite
+			uint8_t send_nack = NACK;
+			serial_transmit(&send_nack, 1);
+			return;
+		}
+
+		//Trigger DMA transfer of valid data to serial buffer.
+		//Instruction from pc is only 1 bytes, hence 1 byte transferred
+		//Return not acknowledge if DMA fails, else return acknowledge
+		if(HAL_DMA_Start_IT(p_dma_handle, (uint32_t)receive_buffer,
 				(uint32_t)(p_serial_buffer->buffer + p_serial_buffer->write_index), 1) != HAL_OK){
 
-				//Transmit Not-Acknowledged
-				uint8_t send_nack = NACK;
-				serial_transmit(&send_nack, 1);
+			//Transmit Not-Acknowledged
+			uint8_t send_nack = NACK;
+			serial_transmit(&send_nack, 1);
 
-			}else{
+		}else{
 			//Transmit Acknowledged
 			uint8_t send_ack = ACK;
 			serial_transmit(&send_ack, 1);
-
-			}
 
 		}
 
