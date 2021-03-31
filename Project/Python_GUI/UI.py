@@ -89,11 +89,16 @@ def serial_read():
     """
 
     global ack_received
+    #Initialise ack flag
+    ack_received = 1
 
     while 1:
         #Read 12 bytes of data on serial line (Blocking)
         #Time out set at 2 sec at initialisation of COM port
         receive_buffer = serial_port.read(12)
+
+        if len(receive_buffer) < 12:
+            continue
 
         #Data received. Check data integrity. Returns 0 if valid
         data_valid = crc16(receive_buffer, serial_buffer_size)
@@ -150,6 +155,7 @@ def serial_transmit(instruction):
 
     #reset ack_received variable
     ack_received = 0
+
     #Wait for acknowledge/not-acknowledge
     status = wait_for_ack()
 
