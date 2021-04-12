@@ -18,13 +18,13 @@ uint8_t check_multiples(const uint8_t val, unsigned char* msg){
 		memcpy(msg, &val, 1);
 		break;
 	case 0b01:
-		memcpy(msg, "CPDM", 4);
+		memcpy(msg, "CPDM", 5);
 		break;
 	case 0b10:
-		memcpy(msg,"IISc", 4);
+		memcpy(msg,"IISc", 5);
 		break;
 	case 0b11:
-		memcpy(msg,"CPDM IISc", 9);
+		memcpy(msg,"CPDM IISc", 10);
 		break;
 	default:
 		break;
